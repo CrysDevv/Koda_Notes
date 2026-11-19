@@ -165,12 +165,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                "Google Gemini API",
+                                "Proveedor de IA (API Key)",
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 15.sp,
                                 color = TextDark
                             )
-                            Text("Procesamiento y resumen", fontSize = 12.sp, color = Color(0xFF9E9EA7))
+                            Text("Procesamiento y generación de resúmenes", fontSize = 12.sp, color = Color(0xFF9E9EA7))
                         }
                     }
                     if (!editandoLlave && llaveActual.isNotEmpty()) {
@@ -210,7 +210,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                                 color = Color(0xFF047857),
                                 fontSize = 13.sp
                             )
-                            Text("Listo para grabar y analizar", color = Color(0xFF059669), fontSize = 11.sp)
+                            Text("Listo para procesar y analizar notas", color = Color(0xFF059669), fontSize = 11.sp)
                         }
                     }
                 } else {
@@ -238,7 +238,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "🔒 Tus llaves se guardan localmente y están cifradas.",
+                        "🔒 Tus llaves se validan con el proveedor y se guardan cifradas.",
                         fontSize = 11.sp,
                         color = Color(0xFF9E9EA7),
                         modifier = Modifier.padding(start = 4.dp)
@@ -246,8 +246,13 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     Spacer(Modifier.height(14.dp))
                     Button(
                         onClick = {
-                            viewModel.validarYGuardarLlave(nuevaLlave)
-                            if (error == null) editandoLlave = false
+                            viewModel.validarYGuardarLlave(
+                                nuevaLlave = nuevaLlave,
+                                onSuccess = {
+                                    nuevaLlave = ""
+                                    editandoLlave = false
+                                }
+                            )
                         },
                         modifier = Modifier.align(Alignment.End),
                         enabled = !isValidating && nuevaLlave.isNotBlank(),
@@ -257,7 +262,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         if (isValidating) {
                             CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
                         } else {
-                            Text("Vincular", fontWeight = FontWeight.Bold)
+                            Text("Vincular y Validar", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -275,18 +280,18 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         ) {
             Column(modifier = Modifier.padding(18.dp)) {
                 Text(
-                    "Selecciona el motor de análisis. Flash Lite ahorra tokens, Flash es más preciso.",
+                    "Selecciona el modelo de IA disponible para tu clave vinculada.",
                     fontSize = 12.sp, color = Color(0xFF9E9EA7), lineHeight = 18.sp
                 )
                 Spacer(Modifier.height(14.dp))
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedCard(
-                        onClick = { if (llaveActual.isNotEmpty()) expandidoModelo = true },
+                        onClick = { if (llaveActual.isNotEmpty() && modelosDisponibles.isNotEmpty()) expandidoModelo = true },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(
                             1.5.dp,
-                            if (llaveActual.isNotEmpty()) PurpleMain.copy(0.3f) else Color(0xFFE8EAF3)
+                            if (llaveActual.isNotEmpty() && modelosDisponibles.isNotEmpty()) PurpleMain.copy(0.3f) else Color(0xFFE8EAF3)
                         )
                     ) {
                         Row(
@@ -294,24 +299,30 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                val display = modelosDisponibles.find { it.first == modeloActual }?.second ?: "Selecciona un modelo"
+                                val display = if (modelosDisponibles.isEmpty()) {
+                                    if (llaveActual.isEmpty()) "Vinca una API Key primero" else "Cargando modelos..."
+                                } else {
+                                    modelosDisponibles.find { it.first == modeloActual }?.second ?: modeloActual.ifBlank { "Selecciona un modelo" }
+                                }
                                 Text(
                                     display,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = if (llaveActual.isNotEmpty()) TextDark else Color(0xFF9E9EA7)
+                                    color = if (llaveActual.isNotEmpty() && modelosDisponibles.isNotEmpty()) TextDark else Color(0xFF9E9EA7)
                                 )
-                                Text(
-                                    modeloActual,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = PurpleMain.copy(if (llaveActual.isNotEmpty()) 1f else 0.4f)
-                                )
+                                if (modeloActual.isNotEmpty()) {
+                                    Text(
+                                        modeloActual,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = PurpleMain.copy(if (llaveActual.isNotEmpty()) 1f else 0.4f)
+                                    )
+                                }
                             }
                             Icon(
                                 Icons.Default.ArrowDropDown,
                                 contentDescription = null,
-                                tint = if (llaveActual.isNotEmpty()) PurpleMain else Color(0xFF9E9EA7)
+                                tint = if (llaveActual.isNotEmpty() && modelosDisponibles.isNotEmpty()) PurpleMain else Color(0xFF9E9EA7)
                             )
                         }
                     }

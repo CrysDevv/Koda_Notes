@@ -23,11 +23,11 @@ class AuthManager(context: Context) {
     )
 
     companion object {
-        private const val KEY_API       = "gemini_api_key"
+        private const val KEY_API       = "ai_api_key"
         private const val KEY_MODELO    = "modelo_seleccionado"
         private const val KEY_INTERVALO = "auto_save_interval_sec"
         private const val KEY_NOMBRE    = "nombre_usuario"
-        private const val DEFAULT_MODELO   = "gemini-2.5-flash-lite"
+        private const val DEFAULT_MODELO   = "gemini-2.5-flash"
         private const val DEFAULT_NOMBRE   = "Estudiante"
 
         const val INTERVALO_3_MIN  = 3  * 60
@@ -37,7 +37,7 @@ class AuthManager(context: Context) {
     }
 
     fun guardarApiKey(apiKey: String) = prefs.edit().putString(KEY_API, apiKey).apply()
-    fun obtenerApiKey(): String?      = prefs.getString(KEY_API, null)
+    fun obtenerApiKey(): String?      = prefs.getString(KEY_API, null) ?: prefs.getString("gemini_api_key", null)
 
     fun guardarModelo(modelo: String) = prefs.edit().putString(KEY_MODELO, modelo).apply()
     fun obtenerModelo(): String       = prefs.getString(KEY_MODELO, DEFAULT_MODELO) ?: DEFAULT_MODELO

@@ -63,7 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.kodanotes.ai.GeminiService
+import app.kodanotes.ai.AiService
 import app.kodanotes.data.audio.WhisperTranscriber
 import app.kodanotes.screens.ExamenScreen
 import app.kodanotes.screens.FlashcardsScreen
@@ -106,8 +106,8 @@ fun KodaNotesApp() {
     val context     = LocalContext.current
     val application = context.applicationContext as KodaNotesApplication
 
-    val authManager   = application.authManager
-    val geminiService = remember { GeminiService(authManager) }
+    val authManager = application.authManager
+    val aiService   = remember { AiService(authManager) }
 
     val audioRecorder      = application.audioRecorder
     val whisperTranscriber = remember { WhisperTranscriber(context) }
@@ -116,23 +116,23 @@ fun KodaNotesApp() {
         factory = HomeViewModelFactory(application.repository, authManager)
     )
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(authManager, geminiService)
+        factory = SettingsViewModelFactory(authManager, aiService)
     )
     val recordViewModel: RecordViewModel =
         viewModel(
             factory = RecordViewModelFactory(
                 application.repository,
                 audioRecorder,
-                geminiService,
+                aiService,
                 whisperTranscriber,
                 authManager
             )
         )
     val flashcardsViewModel: FlashcardsViewModel = viewModel(
-        factory = FlashcardsViewModelFactory(application.repository, application.estudioRepository, geminiService)
+        factory = FlashcardsViewModelFactory(application.repository, application.estudioRepository, aiService)
     )
     val examenViewModel: ExamenViewModel = viewModel(
-        factory = ExamenViewModelFactory(application.repository, application.estudioRepository, geminiService)
+        factory = ExamenViewModelFactory(application.repository, application.estudioRepository, aiService)
     )
 
     val destinationOrder = listOf(

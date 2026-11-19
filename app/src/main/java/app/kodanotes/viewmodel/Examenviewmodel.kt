@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.kodanotes.ai.AiPrompts
-import app.kodanotes.ai.GeminiService
+import app.kodanotes.ai.AiService
 import app.kodanotes.data.local.entity.ExamenEntity
 import app.kodanotes.data.local.entity.MateriaEntity
 import app.kodanotes.data.local.entity.NotaEntity
@@ -43,7 +43,7 @@ data class PreguntaActiva(
 class ExamenViewModel(
     private val materiaRepository: MateriaRepository,
     private val estudioRepository: EstudioRepository,
-    private val geminiService:     GeminiService
+    private val aiService:         AiService
 ) : ViewModel() {
 
     val materias: StateFlow<List<MateriaEntity>> = materiaRepository.todasLasMaterias
@@ -145,7 +145,7 @@ class ExamenViewModel(
                 cantidad       = _cantidadPreguntas.value,
                 dificultad     = _dificultad.value
             )
-            val respuesta = geminiService.validarYGenerar(prompt)
+            val respuesta = aiService.validarYGenerar(prompt)
 
             if (respuesta == null || respuesta.startsWith("Error")) {
                 _errorMsg.value = respuesta ?: "Error al conectar con la IA"
@@ -326,12 +326,12 @@ class ExamenViewModel(
 class ExamenViewModelFactory(
     private val materiaRepository: MateriaRepository,
     private val estudioRepository: EstudioRepository,
-    private val geminiService:     GeminiService
+    private val aiService:         AiService
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ExamenViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ExamenViewModel(materiaRepository, estudioRepository, geminiService) as T
+            return ExamenViewModel(materiaRepository, estudioRepository, aiService) as T
         }
         throw IllegalArgumentException("ViewModel desconocido")
     }

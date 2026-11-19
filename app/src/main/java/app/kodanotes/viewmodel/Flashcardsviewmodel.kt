@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.kodanotes.ai.AiPrompts
-import app.kodanotes.ai.GeminiService
+import app.kodanotes.ai.AiService
 import app.kodanotes.data.local.entity.FlashcardEntity
 import app.kodanotes.data.local.entity.MateriaEntity
 import app.kodanotes.data.local.entity.NotaEntity
@@ -30,7 +30,7 @@ enum class FlashcardsState {
 class FlashcardsViewModel(
     private val materiaRepository: MateriaRepository,
     private val estudioRepository: EstudioRepository,
-    private val geminiService:     GeminiService
+    private val aiService:         AiService
 ) : ViewModel() {
 
     val materias: StateFlow<List<MateriaEntity>> = materiaRepository.todasLasMaterias
@@ -113,7 +113,7 @@ class FlashcardsViewModel(
                 .joinToString("\n\n---\n\n") { it.contenido }
 
             val prompt    = AiPrompts.flashcards(contenido, _cantidadCards.value)
-            val respuesta = geminiService.validarYGenerar(prompt)
+            val respuesta = aiService.validarYGenerar(prompt)
 
             if (respuesta == null || respuesta.startsWith("Error")) {
                 _errorMsg.value = respuesta ?: "Error al conectar con la IA"
@@ -246,12 +246,12 @@ class FlashcardsViewModel(
 class FlashcardsViewModelFactory(
     private val materiaRepository: MateriaRepository,
     private val estudioRepository: EstudioRepository,
-    private val geminiService:     GeminiService
+    private val aiService:         AiService
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FlashcardsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FlashcardsViewModel(materiaRepository, estudioRepository, geminiService) as T
+            return FlashcardsViewModel(materiaRepository, estudioRepository, aiService) as T
         }
         throw IllegalArgumentException("ViewModel desconocido")
     }

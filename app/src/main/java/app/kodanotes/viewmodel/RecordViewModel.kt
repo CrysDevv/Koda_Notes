@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.kodanotes.ai.AiPrompts
-import app.kodanotes.ai.GeminiService
+import app.kodanotes.ai.AiService
 import app.kodanotes.data.audio.AudioRecorder
 import app.kodanotes.data.audio.WhisperTranscriber
 import app.kodanotes.data.local.entity.MateriaEntity
@@ -52,7 +52,7 @@ sealed class RecordState {
 class RecordViewModel(
     private val repository:         MateriaRepository,
     private val audioRecorder:      AudioRecorder,
-    private val geminiService:      GeminiService,
+    private val aiService:          AiService,
     private val whisperTranscriber: WhisperTranscriber,
     private val authManager:        AuthManager
 ) : ViewModel() {
@@ -131,7 +131,7 @@ class RecordViewModel(
                     Log.w("RECORD_VM", "Whisper aún cargando")
                     return
                 }
-                if (!geminiService.tieneApiKey()) {
+                if (!aiService.tieneApiKey()) {
                     mostrarErrorTemporal(RecordState.ErrorNoApi)
                     return
                 }
@@ -241,7 +241,7 @@ class RecordViewModel(
 
         val resumen = try {
             withTimeout(60_000L) {
-                geminiService.validarYGenerar(
+                aiService.validarYGenerar(
                     AiPrompts.analisisSegmento(
                         transcripcion = transcripcion,
                         numero        = 1,
@@ -250,10 +250,10 @@ class RecordViewModel(
                 )
             }
         } catch (e: TimeoutCancellationException) {
-            Log.e("RECORD_VM", "Timeout esperando a Gemini")
+            Log.e("RECORD_VM", "Timeout esperando a la IA")
             null
         } catch (e: Exception) {
-            Log.e("RECORD_VM", "Error Gemini: ${e.message}")
+            Log.e("RECORD_VM", "Error IA: ${e.message}")
             null
         }
 
@@ -277,7 +277,7 @@ class RecordViewModel(
             if (cheatSheet.isNotBlank()) {
                 val resumenGlobal = try {
                     withTimeout(60_000L) {
-                        geminiService.validarYGenerar(
+                        aiService.validarYGenerar(
                             AiPrompts.resumenGlobal(listOf(cheatSheet))
                         )
                     }
@@ -358,7 +358,7 @@ class RecordViewModel(
 class RecordViewModelFactory(
     private val repository:         MateriaRepository,
     private val audioRecorder:      AudioRecorder,
-    private val geminiService:      GeminiService,
+    private val aiService:          AiService,
     private val whisperTranscriber: WhisperTranscriber,
     private val authManager:        AuthManager
 ) : ViewModelProvider.Factory {
@@ -366,7 +366,7 @@ class RecordViewModelFactory(
         if (modelClass.isAssignableFrom(RecordViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return RecordViewModel(
-                repository, audioRecorder, geminiService, whisperTranscriber, authManager
+                repository, audioRecorder, aiService, whisperTranscriber, authManager
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
