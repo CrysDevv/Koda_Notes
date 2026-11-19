@@ -6,7 +6,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,8 +55,10 @@ import androidx.compose.ui.unit.sp
 import app.kodanotes.data.local.entity.ExamenEntity
 import app.kodanotes.ui.theme.BackgroundLight
 import app.kodanotes.ui.theme.CardWhite
-import app.kodanotes.ui.theme.PurpleMain
+import app.kodanotes.ui.theme.DarkContainer
+import app.kodanotes.ui.theme.LavenderBg
 import app.kodanotes.ui.theme.TextDark
+import app.kodanotes.ui.theme.TextMuted
 import app.kodanotes.viewmodel.ExamenState
 import app.kodanotes.viewmodel.ExamenViewModel
 import app.kodanotes.viewmodel.PreguntaActiva
@@ -60,9 +66,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val VerdeExamen  = Color(0xFF34C759)
-private val RojoExamen   = Color(0xFFFF3B30)
-private val AmbarExamen  = Color(0xFFFF9500)
+private val VerdeExamen  = Color(0xFF10B981)
+private val RojoExamen   = Color(0xFFEF4444)
+private val AmbarExamen  = Color(0xFFF59E0B)
 
 @Composable
 fun ExamenScreen(viewModel: ExamenViewModel) {
@@ -90,21 +96,27 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
     ) { estadoActual ->
         when (estadoActual) {
 
-            // ── Configuración ─────────────────────────────────────────────────
             ExamenState.IDLE, ExamenState.ERROR -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(BackgroundLight)
-                        .padding(top = 56.dp, start = 24.dp, end = 24.dp, bottom = 100.dp)
+                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 100.dp)
                 ) {
                     item {
-                        Text("Modo examen", fontSize = 30.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = TextDark, letterSpacing = (-0.5).sp)
-                        Text("Pon a prueba tu conocimiento",
-                            fontSize = 14.sp, color = Color(0xFF9E9EA7),
-                            fontWeight = FontWeight.Medium)
+                        Text(
+                            "Modo Examen",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = TextDark,
+                            letterSpacing = (-0.5).sp
+                        )
+                        Text(
+                            "Pon a prueba tu conocimiento",
+                            fontSize = 14.sp,
+                            color = TextMuted,
+                            fontWeight = FontWeight.Medium
+                        )
                         Spacer(Modifier.height(24.dp))
 
                         AnimatedVisibility(estadoActual == ExamenState.ERROR) {
@@ -112,19 +124,27 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color(0xFFFFF0EF))
-                                        .padding(12.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(Color(0xFFFEE2E2))
+                                        .padding(14.dp)
                                 ) {
-                                    Text("⚠ ${errorMsg ?: "Error desconocido"}",
-                                        fontSize = 13.sp, color = Color(0xFFCC1A12))
+                                    Text(
+                                        "⚠ ${errorMsg ?: "Error desconocido"}",
+                                        fontSize = 13.sp,
+                                        color = Color(0xFFDC2626)
+                                    )
                                 }
                                 Spacer(Modifier.height(12.dp))
                             }
                         }
 
-                        Text("Materia", fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold, color = Color(0xFF9E9EA7))
+                        Text(
+                            "MATERIA",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextMuted,
+                            letterSpacing = 1.sp
+                        )
                         Spacer(Modifier.height(8.dp))
                     }
 
@@ -138,18 +158,17 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
-                                        .background(
-                                            if (sel) Color(materia.colorHex).copy(0.15f)
-                                            else Color(0xFFF0F0F5)
-                                        )
+                                        .background(if (sel) DarkContainer else CardWhite)
+                                        .border(1.dp, if (sel) DarkContainer else Color(0xFFE5E7EB), RoundedCornerShape(20.dp))
                                         .clickable { viewModel.seleccionarMateria(materia) }
-                                        .padding(horizontal = 14.dp, vertical = 7.dp)
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
                                 ) {
-                                    Text("${materia.simbolo} ${materia.nombre}",
+                                    Text(
+                                        materia.nombre,
                                         fontSize = 13.sp,
-                                        fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (sel) Color(materia.colorHex)
-                                        else Color(0xFF9E9EA7))
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (sel) Color.White else TextDark
+                                    )
                                 }
                             }
                         }
@@ -158,8 +177,12 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
 
                     if (notas.isNotEmpty()) {
                         item {
-                            Text("Selecciona notas", fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold, color = Color(0xFF9E9EA7))
+                            Text(
+                                "Selecciona notas",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextMuted
+                            )
                             Spacer(Modifier.height(8.dp))
                         }
                         items(notas) { nota ->
@@ -167,31 +190,44 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 6.dp)
-                                    .shadow(if (sel) 4.dp else 0.dp,
-                                        RoundedCornerShape(12.dp),
-                                        spotColor = PurpleMain.copy(0.1f))
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .padding(bottom = 8.dp)
+                                    .shadow(
+                                        if (sel) 4.dp else 0.dp,
+                                        RoundedCornerShape(14.dp),
+                                        spotColor = Color(0x20000000)
+                                    )
+                                    .clip(RoundedCornerShape(14.dp))
                                     .background(CardWhite)
                                     .clickable { viewModel.toggleNota(nota.id) }
-                                    .padding(12.dp),
+                                    .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(20.dp)
+                                        .size(22.dp)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (sel) PurpleMain else Color(0xFFEEEEF4))
+                                        .background(if (sel) DarkContainer else Color(0xFFE8EAF3))
                                         .padding(2.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (sel) Icon(Icons.Default.Check, null,
-                                        tint = Color.White, modifier = Modifier.size(14.dp))
+                                    if (sel) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.width(12.dp))
-                                Text(nota.titulo, fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium, color = TextDark,
-                                    maxLines = 1, modifier = Modifier.weight(1f))
+                                Text(
+                                    nota.titulo,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = TextDark,
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
                         }
                         item { Spacer(Modifier.height(16.dp)) }
@@ -201,40 +237,49 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(20.dp),
                                 colors = CardDefaults.cardColors(containerColor = CardWhite)
                             ) {
-                                Column(Modifier.padding(16.dp)) {
-                                    // Cantidad de preguntas
-                                    Text("Número de preguntas", fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold, color = TextDark)
-                                    Spacer(Modifier.height(12.dp))
+                                Column(Modifier.padding(18.dp)) {
+                                    Text(
+                                        "Número de preguntas",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                    Spacer(Modifier.height(14.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.Center,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        ExamenStepperBtn("-") {
-                                            viewModel.setCantidadPreguntas(cantidad - 1)
-                                        }
+                                        ExamenStepperBtn("-") { viewModel.setCantidadPreguntas(cantidad - 1) }
                                         Spacer(Modifier.width(24.dp))
-                                        Text("$cantidad", fontSize = 28.sp,
-                                            fontWeight = FontWeight.ExtraBold, color = PurpleMain)
+                                        Text(
+                                            "$cantidad",
+                                            fontSize = 28.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = TextDark
+                                        )
                                         Spacer(Modifier.width(24.dp))
-                                        ExamenStepperBtn("+") {
-                                            viewModel.setCantidadPreguntas(cantidad + 1)
-                                        }
+                                        ExamenStepperBtn("+") { viewModel.setCantidadPreguntas(cantidad + 1) }
                                     }
-                                    Text("Mínimo 5 — máximo 20", fontSize = 11.sp,
-                                        color = Color(0xFFB0B0BA),
+                                    Text(
+                                        "Mínimo 5 — máximo 20",
+                                        fontSize = 11.sp,
+                                        color = TextMuted,
                                         modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center)
+                                        textAlign = TextAlign.Center
+                                    )
 
                                     Spacer(Modifier.height(20.dp))
 
-                                    // Dificultad
-                                    Text("Dificultad", fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold, color = TextDark)
+                                    Text(
+                                        "Dificultad",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
                                     Spacer(Modifier.height(10.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -249,35 +294,36 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)
-                                                    .height(40.dp)
-                                                    .clip(RoundedCornerShape(10.dp))
+                                                    .height(42.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
                                                     .background(
-                                                        if (activo) color.copy(0.12f)
-                                                        else Color(0xFFF0F0F5)
+                                                        if (activo) color.copy(0.16f)
+                                                        else Color(0xFFF1F3FB)
                                                     )
                                                     .clickable { viewModel.setDificultad(nivel) },
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text(nivel, fontSize = 13.sp,
-                                                    fontWeight = if (activo) FontWeight.Bold
-                                                    else FontWeight.Normal,
-                                                    color = if (activo) color
-                                                    else Color(0xFF9E9EA7))
+                                                Text(
+                                                    nivel,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = if (activo) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (activo) color else TextMuted
+                                                )
                                             }
                                         }
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(18.dp))
 
                             Button(
                                 onClick = { viewModel.generarExamen() },
                                 enabled = notasSeleccionadas.isNotEmpty(),
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                                shape = RoundedCornerShape(14.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = PurpleMain,
-                                    disabledContainerColor = Color(0xFFCCCCD4)
+                                    containerColor = DarkContainer,
+                                    disabledContainerColor = Color(0xFFD1D5DB)
                                 )
                             ) {
                                 Text(
@@ -285,13 +331,13 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                                         "Selecciona al menos una nota"
                                     else
                                         "Generar examen · $cantidad preguntas · $dificultad",
-                                    fontWeight = FontWeight.Bold, fontSize = 14.sp
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
                                 )
                             }
                         }
                     }
 
-                    // Historial
                     if (historial.isNotEmpty()) {
                         item {
                             Spacer(Modifier.height(28.dp))
@@ -300,21 +346,31 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Historial", fontSize = 18.sp,
-                                    fontWeight = FontWeight.ExtraBold, color = TextDark)
+                                Text(
+                                    "Historial",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextDark
+                                )
                                 Column(horizontalAlignment = Alignment.End) {
                                     mejorNota?.let {
-                                        Text("Mejor: ${"%.1f".format(it)}",
-                                            fontSize = 12.sp, color = VerdeExamen,
-                                            fontWeight = FontWeight.SemiBold)
+                                        Text(
+                                            "Mejor: ${"%.1f".format(it)}",
+                                            fontSize = 12.sp,
+                                            color = VerdeExamen,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
                                     promedioNota?.let {
-                                        Text("Promedio: ${"%.1f".format(it)}",
-                                            fontSize = 12.sp, color = Color(0xFF9E9EA7))
+                                        Text(
+                                            "Promedio: ${"%.1f".format(it)}",
+                                            fontSize = 12.sp,
+                                            color = TextMuted
+                                        )
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(10.dp))
+                            Spacer(Modifier.height(12.dp))
                         }
                         items(historial) { examen ->
                             ExamenHistorialItem(
@@ -326,23 +382,29 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                 }
             }
 
-            // ── Generando ─────────────────────────────────────────────────────
             ExamenState.GENERANDO -> {
-                Box(Modifier.fillMaxSize().background(BackgroundLight),
-                    contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(BackgroundLight),
+                    contentAlignment = Alignment.Center
+                ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = PurpleMain,
-                            modifier = Modifier.size(48.dp))
+                        CircularProgressIndicator(color = DarkContainer, modifier = Modifier.size(52.dp), strokeWidth = 4.dp)
                         Spacer(Modifier.height(20.dp))
-                        Text("Generando examen con IA...",
-                            fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                        Text("Esto puede tardar unos segundos",
-                            fontSize = 13.sp, color = Color(0xFF9E9EA7))
+                        Text(
+                            "Generando examen con IA...",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+                        Text(
+                            "Creando preguntas y respuestas",
+                            fontSize = 13.sp,
+                            color = TextMuted
+                        )
                     }
                 }
             }
 
-            // ── En examen ─────────────────────────────────────────────────────
             ExamenState.EN_EXAMEN -> {
                 val pregunta = preguntas.getOrNull(indice)
                 if (pregunta == null) return@AnimatedContent
@@ -351,114 +413,169 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(BackgroundLight)
-                        .padding(top = 56.dp, start = 24.dp, end = 24.dp, bottom = 100.dp)
+                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 100.dp)
                 ) {
-                    // Progreso (Fijo arriba)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Pregunta ${indice + 1} de ${preguntas.size}",
-                            fontSize = 13.sp, color = Color(0xFF9E9EA7))
-                        Text(viewModel.dificultad.collectAsState().value,
-                            fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                            color = when (dificultad) {
-                                "Fácil"   -> VerdeExamen
-                                "Difícil" -> RojoExamen
-                                else      -> AmbarExamen
-                            })
+                        Column {
+                            Text(
+                                "Modo Examen",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Black,
+                                color = TextDark,
+                                letterSpacing = (-0.5).sp
+                            )
+                            Text(
+                                "Pon a prueba tu conocimiento",
+                                fontSize = 14.sp,
+                                color = TextMuted,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
-                    Spacer(Modifier.height(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(3.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFFEEEEF4))
+
+                    Spacer(Modifier.height(18.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth((indice + 1).toFloat() / preguntas.size.toFloat())
-                                .height(3.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(PurpleMain)
-                        )
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(DarkContainer)
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text("Todas las materias", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                        materias.take(2).forEach { m ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(CardWhite)
+                                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(m.nombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            }
+                        }
                     }
-                    Spacer(Modifier.height(20.dp))
 
-                    // FIX: Contenedor con Scroll para la pregunta y opciones
+                    Spacer(Modifier.height(18.dp))
+
                     Column(
                         modifier = Modifier
-                            .weight(1f) // Ocupa el espacio sobrante
-                            .verticalScroll(rememberScrollState()) // Permite deslizar
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        // Pregunta
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardWhite)
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = LavenderBg)
                         ) {
-                            Text(
-                                pregunta.pregunta,
-                                modifier = Modifier.padding(20.dp),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = TextDark,
-                                lineHeight = 24.sp
-                            )
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "PREGUNTA ${indice + 1}/${preguntas.size}",
+                                        fontSize = 12.sp,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(CardWhite)
+                                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            "Simulacro IA",
+                                            fontSize = 12.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextDark
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(14.dp))
+
+                                Text(
+                                    pregunta.pregunta,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextDark,
+                                    lineHeight = 24.sp
+                                )
+                            }
                         }
+
                         Spacer(Modifier.height(16.dp))
 
-                        // Opciones
                         pregunta.opciones.forEach { opcion ->
                             val letra = opcion.take(1)
                             val seleccionada = pregunta.seleccionada == letra
-                            Row(
+
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .shadow(if (seleccionada) 4.dp else 0.dp,
-                                        RoundedCornerShape(14.dp),
-                                        spotColor = PurpleMain.copy(0.2f))
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(
-                                        if (seleccionada) Color(0xFFEEEDFE) else CardWhite
-                                    )
-                                    .clickable { viewModel.responder(letra) }
-                                    .padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(bottom = 10.dp)
+                                    .shadow(if (seleccionada) 4.dp else 1.dp, RoundedCornerShape(20.dp), spotColor = Color(0x10000000))
+                                    .clickable { viewModel.responder(letra) },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (seleccionada) Color(0xFFF0EFFF) else CardWhite
+                                ),
+                                border = if (seleccionada) BorderStroke(1.5.dp, DarkContainer) else null
                             ) {
-                                Box(
+                                Row(
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (seleccionada) PurpleMain
-                                            else Color(0xFFF0F0F5)
-                                        ),
-                                    contentAlignment = Alignment.Center
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 18.dp, vertical = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(letra, fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (seleccionada) Color.White
-                                        else Color(0xFF9E9EA7))
+                                    Text(
+                                        opcion.drop(3),
+                                        fontSize = 13.sp,
+                                        color = TextDark,
+                                        fontWeight = if (seleccionada) FontWeight.Bold else FontWeight.Medium,
+                                        lineHeight = 18.sp,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Spacer(Modifier.width(12.dp))
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape)
+                                            .background(if (seleccionada) DarkContainer else Color(0xFFF1F3FB)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            letra,
+                                            fontSize = 12.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (seleccionada) Color.White else TextMuted
+                                        )
+                                    }
                                 }
-                                Spacer(Modifier.width(12.dp))
-                                Text(opcion.drop(3), fontSize = 14.sp,
-                                    color = if (seleccionada) PurpleMain else TextDark,
-                                    fontWeight = if (seleccionada) FontWeight.Medium
-                                    else FontWeight.Normal,
-                                    modifier = Modifier.weight(1f))
                             }
                         }
-                        // Pequeño espacio extra al final del scroll para que no quede pegado a los botones
                         Spacer(Modifier.height(8.dp))
                     }
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Navegación (Fijo abajo)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -466,33 +583,28 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         if (indice > 0) {
                             Button(
                                 onClick = { viewModel.anteriorPregunta() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF0F0F5)
-                                )
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE5E7EB))
                             ) {
-                                Text("← Anterior", color = TextDark,
-                                    fontWeight = FontWeight.SemiBold)
+                                Text("← Anterior", color = TextDark, fontWeight = FontWeight.Bold)
                             }
                         }
                         if (indice < preguntas.size - 1) {
                             Button(
                                 onClick = { viewModel.siguientePregunta() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = PurpleMain)
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = DarkContainer)
                             ) {
                                 Text("Siguiente →", fontWeight = FontWeight.Bold)
                             }
                         } else {
                             Button(
                                 onClick = { viewModel.terminarExamen() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = VerdeExamen
-                                )
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = VerdeExamen)
                             ) {
                                 Text("Terminar examen", fontWeight = FontWeight.Bold)
                             }
@@ -501,7 +613,6 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                 }
             }
 
-            // ── Resultado ─────────────────────────────────────────────────────
             ExamenState.RESULTADO -> {
                 val examen = examenGuardado ?: return@AnimatedContent
                 val aprobado = examen.nota >= 6f
@@ -514,14 +625,21 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-                        Icon(
-                            if (aprobado) Icons.Default.CheckCircle
-                            else Icons.AutoMirrored.Filled.ArrowBack,
-                            null,
-                            tint = if (aprobado) VerdeExamen else RojoExamen,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(CircleShape)
+                                .background(if (aprobado) Color(0xFFE6F7F0) else Color(0xFFFEE2E2)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                if (aprobado) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ArrowBack,
+                                null,
+                                tint = if (aprobado) VerdeExamen else RojoExamen,
+                                modifier = Modifier.size(56.dp)
+                            )
+                        }
+                        Spacer(Modifier.height(16.dp))
                         Text(
                             "${"%.1f".format(examen.nota)} / 10",
                             fontSize = 48.sp,
@@ -529,39 +647,33 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                             color = if (aprobado) VerdeExamen else RojoExamen
                         )
                         Text(
-                            if (aprobado) "¡Aprobado!" else "Reprobado",
+                            if (aprobado) "¡Excelente trabajo!" else "Necesita repasar",
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Bold,
                             color = if (aprobado) VerdeExamen else RojoExamen
                         )
                         Text(
                             "${examen.dificultad} · ${examen.totalPreguntas} preguntas",
-                            fontSize = 13.sp, color = Color(0xFF9E9EA7)
+                            fontSize = 13.sp, color = TextMuted
                         )
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(26.dp))
 
-                        // Stats
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            ResultadoChip("${examen.correctas}", "Correctas",
-                                VerdeExamen, Modifier.weight(1f))
-                            ResultadoChip("${examen.incorrectas}", "Incorrectas",
-                                RojoExamen, Modifier.weight(1f))
-                            ResultadoChip("${examen.omitidas}", "Omitidas",
-                                Color(0xFF9E9EA7), Modifier.weight(1f))
+                            ResultadoChip("${examen.correctas}", "Correctas", VerdeExamen, Modifier.weight(1f))
+                            ResultadoChip("${examen.incorrectas}", "Incorrectas", RojoExamen, Modifier.weight(1f))
+                            ResultadoChip("${examen.omitidas}", "Omitidas", TextMuted, Modifier.weight(1f))
                         }
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(28.dp))
 
                         if (preguntasRepaso.isNotEmpty()) {
                             Button(
                                 onClick = { viewModel.iniciarRepaso() },
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFFFF0EF)
-                                )
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2))
                             ) {
                                 Text(
                                     "Repasar ${preguntasRepaso.size} respuesta(s) incorrecta(s)",
@@ -575,19 +687,20 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         Button(
                             onClick = { viewModel.volverAConfigurar() },
                             modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PurpleMain)
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkContainer)
                         ) {
                             Text("Nuevo examen", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Guardado en historial",
-                            fontSize = 12.sp, color = Color(0xFFB0B0BA))
+                        Text(
+                            "Guardado en historial",
+                            fontSize = 12.sp, color = TextMuted
+                        )
                     }
                 }
             }
 
-            // ── Repaso de errores ─────────────────────────────────────────────
             ExamenState.REPASO -> {
                 val pregunta = preguntasRepaso.getOrNull(indiceRepaso)
                 if (pregunta == null) return@AnimatedContent
@@ -598,26 +711,33 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         .background(BackgroundLight)
                         .padding(top = 56.dp, start = 24.dp, end = 24.dp, bottom = 100.dp)
                 ) {
-                    // Header (Fijo arriba)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, null,
-                            tint = Color(0xFF9E9EA7),
+                        Box(
                             modifier = Modifier
-                                .size(24.dp)
-                                .clickable { viewModel.volverDeRepaso() }
-                        )
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF1F3FB))
+                                .clickable { viewModel.volverDeRepaso() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack, null,
+                                tint = TextDark,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         Spacer(Modifier.width(12.dp))
-                        Text("Repaso · ${indiceRepaso + 1} / ${preguntasRepaso.size}",
-                            fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text(
+                            "Repaso · ${indiceRepaso + 1} / ${preguntasRepaso.size}",
+                            fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = TextDark
+                        )
                     }
                     Spacer(Modifier.height(20.dp))
 
-                    // FIX: Contenedor con Scroll para la tarjeta de repaso
                     Column(
                         modifier = Modifier
-                            .weight(1f) // Ocupa el espacio sobrante
-                            .verticalScroll(rememberScrollState()) // Permite deslizar
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
                     ) {
                         RepasoPreguntaCard(pregunta)
                         Spacer(Modifier.height(8.dp))
@@ -625,7 +745,6 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Navegación (Fijo abajo)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -633,30 +752,27 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         if (indiceRepaso > 0) {
                             Button(
                                 onClick = { viewModel.anteriorRepaso() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFFF0F0F5)
-                                )
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE5E7EB))
                             ) {
-                                Text("← Anterior", color = TextDark,
-                                    fontWeight = FontWeight.SemiBold)
+                                Text("← Anterior", color = TextDark, fontWeight = FontWeight.Bold)
                             }
                         }
                         if (indiceRepaso < preguntasRepaso.size - 1) {
                             Button(
                                 onClick = { viewModel.siguienteRepaso() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = PurpleMain)
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = DarkContainer)
                             ) {
                                 Text("Siguiente →", fontWeight = FontWeight.Bold)
                             }
                         } else {
                             Button(
                                 onClick = { viewModel.volverDeRepaso() },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f).height(50.dp),
+                                shape = RoundedCornerShape(14.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = VerdeExamen)
                             ) {
                                 Text("Finalizar repaso", fontWeight = FontWeight.Bold)
@@ -669,19 +785,17 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
     }
 }
 
-// ── Componentes privados ──────────────────────────────────────────────────────
-
 @Composable
 private fun ExamenStepperBtn(label: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFF0F0F5))
+            .size(42.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF1F3FB))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextDark)
     }
 }
 
@@ -689,44 +803,51 @@ private fun ExamenStepperBtn(label: String, onClick: () -> Unit) {
 private fun ResultadoChip(valor: String, label: String, color: Color, modifier: Modifier) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .shadow(4.dp, RoundedCornerShape(16.dp), spotColor = Color(0x0C000000))
+            .clip(RoundedCornerShape(16.dp))
             .background(CardWhite)
             .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(valor, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        Text(label, fontSize = 11.sp, color = Color(0xFF9E9EA7))
+        Spacer(Modifier.height(2.dp))
+        Text(label, fontSize = 11.sp, color = TextMuted, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
 private fun ExamenHistorialItem(examen: ExamenEntity, onBorrar: () -> Unit) {
-    val fecha = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
-        .format(Date(examen.fecha))
+    val fecha = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(examen.fecha))
     val aprobado = examen.nota >= 6f
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .padding(bottom = 10.dp)
+            .shadow(4.dp, RoundedCornerShape(16.dp), spotColor = Color(0x0C000000))
+            .clip(RoundedCornerShape(16.dp))
             .background(CardWhite)
-            .padding(14.dp),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
-            Text(fecha, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-            Text("${examen.totalPreguntas} preguntas · ${examen.dificultad}",
-                fontSize = 12.sp, color = Color(0xFF9E9EA7))
+            Text(fecha, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                "${examen.totalPreguntas} preguntas · ${examen.dificultad}",
+                fontSize = 12.sp,
+                color = TextMuted
+            )
         }
         Text(
-            "${"%.1f".format(examen.nota)}",
-            fontSize = 20.sp, fontWeight = FontWeight.ExtraBold,
+            "%.1f".format(examen.nota),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
             color = if (aprobado) VerdeExamen else RojoExamen
         )
         Spacer(Modifier.width(12.dp))
         TextButton(onClick = onBorrar) {
-            Text("Borrar", fontSize = 12.sp, color = Color(0xFFB0B0BA))
+            Text("Borrar", fontSize = 12.sp, color = TextMuted)
         }
     }
 }
@@ -735,13 +856,18 @@ private fun ExamenHistorialItem(examen: ExamenEntity, onBorrar: () -> Unit) {
 private fun RepasoPreguntaCard(pregunta: PreguntaActiva) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = CardWhite)
     ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(pregunta.pregunta, fontSize = 15.sp,
-                fontWeight = FontWeight.Medium, color = TextDark, lineHeight = 22.sp)
-            Spacer(Modifier.height(16.dp))
+        Column(Modifier.padding(22.dp)) {
+            Text(
+                pregunta.pregunta,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                lineHeight = 24.sp
+            )
+            Spacer(Modifier.height(18.dp))
 
             pregunta.opciones.forEach { opcion ->
                 val letra = opcion.take(1)
@@ -751,61 +877,69 @@ private fun RepasoPreguntaCard(pregunta: PreguntaActiva) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 6.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .padding(bottom = 8.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(
                             when {
-                                esCorrecta   -> Color(0xFFEAFAEE)
-                                esSeleccionada -> Color(0xFFFFF0EF)
-                                else         -> Color(0xFFF8F8FC)
+                                esCorrecta   -> Color(0xFFE6F7F0)
+                                esSeleccionada -> Color(0xFFFEE2E2)
+                                else         -> Color(0xFFF1F3FB)
                             }
                         )
-                        .padding(10.dp),
+                        .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
+                            .size(30.dp)
                             .clip(CircleShape)
                             .background(
                                 when {
                                     esCorrecta   -> VerdeExamen
                                     esSeleccionada -> RojoExamen
-                                    else         -> Color(0xFFEEEEF4)
+                                    else         -> Color(0xFFD1D5DB)
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(letra, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            color = if (esCorrecta || esSeleccionada) Color.White
-                            else Color(0xFF9E9EA7))
+                        Text(
+                            letra,
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (esCorrecta || esSeleccionada) Color.White else TextMuted
+                        )
                     }
-                    Spacer(Modifier.width(10.dp))
-                    Text(opcion.drop(3), fontSize = 13.sp,
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        opcion.drop(3),
+                        fontSize = 14.sp,
                         color = when {
                             esCorrecta   -> VerdeExamen
                             esSeleccionada -> RojoExamen
-                            else         -> Color(0xFF9E9EA7)
+                            else         -> TextMuted
                         },
-                        fontWeight = if (esCorrecta || esSeleccionada) FontWeight.SemiBold
-                        else FontWeight.Normal)
+                        fontWeight = if (esCorrecta || esSeleccionada) FontWeight.Bold else FontWeight.Medium
+                    )
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFEEEDFE))
-                    .padding(12.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(LavenderBg)
+                    .padding(14.dp)
             ) {
-                Text("💡 ${pregunta.explicacion}", fontSize = 13.sp,
-                    color = PurpleMain, lineHeight = 20.sp)
+                Text(
+                    "💡 ${pregunta.explicacion}",
+                    fontSize = 13.sp,
+                    color = TextDark,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
 }
-
-// Needed for CircleShape reference
-private val CircleShape = RoundedCornerShape(50)

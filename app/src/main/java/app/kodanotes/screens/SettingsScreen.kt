@@ -81,13 +81,15 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             .padding(top = 60.dp, start = 20.dp, end = 20.dp, bottom = 32.dp)
     ) {
         Text(
-            "Ajustes", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold,
-            color = TextDark, letterSpacing = (-0.5).sp
+            "Ajustes",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = TextDark,
+            letterSpacing = (-0.5).sp
         )
 
         Spacer(Modifier.height(28.dp))
 
-        // ── SECCIÓN: Perfil ───────────────────────────────────────────────────
         SectionLabel("PERFIL")
 
         Card(
@@ -95,9 +97,13 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = CardWhite)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Tu nombre", fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp, color = TextDark)
+            Column(modifier = Modifier.padding(18.dp)) {
+                Text(
+                    "Tu nombre",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = TextDark
+                )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value         = nombreEditado,
@@ -108,11 +114,11 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     shape         = RoundedCornerShape(14.dp),
                     colors        = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = PurpleMain,
-                        unfocusedBorderColor = Color(0xFFE0E0E8)
+                        unfocusedBorderColor = Color(0xFFE8EAF3)
                     ),
                     trailingIcon  = {
                         if (nombreEditado != nombreActual && nombreEditado.isNotBlank()) {
-                            androidx.compose.material3.IconButton(
+                            IconButton(
                                 onClick = { viewModel.guardarNombre(nombreEditado) }
                             ) {
                                 Icon(
@@ -126,15 +132,15 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 )
                 Text(
                     "Aparece en el saludo de la pantalla principal.",
-                    fontSize = 11.sp, color = Color(0xFFB0B0BA),
+                    fontSize = 11.sp,
+                    color = Color(0xFF9E9EA7),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(22.dp))
 
-        // ── SECCIÓN: API Key ──────────────────────────────────────────────────
         SectionLabel("SERVICIOS DE IA")
 
         Card(
@@ -142,7 +148,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = CardWhite)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,21 +156,31 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFFEEF0FF)),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFFF0EFFF)),
                             contentAlignment = Alignment.Center
                         ) { Text("🤖", fontSize = 22.sp) }
                         Spacer(Modifier.width(12.dp))
                         Column {
-                            Text("Google Gemini API", fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp, color = TextDark)
+                            Text(
+                                "Google Gemini API",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 15.sp,
+                                color = TextDark
+                            )
                             Text("Procesamiento y resumen", fontSize = 12.sp, color = Color(0xFF9E9EA7))
                         }
                     }
                     if (!editandoLlave && llaveActual.isNotEmpty()) {
                         IconButton(onClick = { editandoLlave = true }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Edit, null, tint = Color(0xFFB0B0BA),
-                                modifier = Modifier.size(18.dp))
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Editar clave",
+                                tint = Color(0xFF9E9EA7),
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
                 }
@@ -173,39 +189,60 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
                 if (!editandoLlave && llaveActual.isNotEmpty()) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF0FBF0)).padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFE6F7F0))
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF2E7D32),
-                            modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            Text("Clave Vinculada", fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1B5E20), fontSize = 13.sp)
-                            Text("Listo para grabar y analizar", color = Color(0xFF388E3C), fontSize = 11.sp)
+                            Text(
+                                "Clave Vinculada",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF047857),
+                                fontSize = 13.sp
+                            )
+                            Text("Listo para grabar y analizar", color = Color(0xFF059669), fontSize = 11.sp)
                         }
                     }
                 } else {
                     OutlinedTextField(
-                        value = nuevaLlave, onValueChange = { nuevaLlave = it },
+                        value = nuevaLlave,
+                        onValueChange = { nuevaLlave = it },
                         label = { Text("Introducir API Key...") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        isError = error != null, enabled = !isValidating,
+                        isError = error != null,
+                        enabled = !isValidating,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PurpleMain, focusedLabelColor = PurpleMain
+                            focusedBorderColor = PurpleMain,
+                            focusedLabelColor = PurpleMain
                         )
                     )
                     if (error != null) {
-                        Text(error!!, color = MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+                        Text(
+                            error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text("🔒 Tus llaves se guardan localmente y están cifradas.",
-                        fontSize = 11.sp, color = Color(0xFFB0B0BA),
-                        modifier = Modifier.padding(start = 4.dp))
+                    Text(
+                        "🔒 Tus llaves se guardan localmente y están cifradas.",
+                        fontSize = 11.sp,
+                        color = Color(0xFF9E9EA7),
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
                     Spacer(Modifier.height(14.dp))
                     Button(
                         onClick = {
@@ -217,18 +254,18 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         colors = ButtonDefaults.buttonColors(containerColor = PurpleMain),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        if (isValidating) CircularProgressIndicator(
-                            Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp
-                        )
-                        else Text("Vincular", fontWeight = FontWeight.SemiBold)
+                        if (isValidating) {
+                            CircularProgressIndicator(Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                        } else {
+                            Text("Vincular", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(22.dp))
 
-        // ── SECCIÓN: Modelo de IA ─────────────────────────────────────────────
         SectionLabel("CEREBRO IA")
 
         Card(
@@ -236,12 +273,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = CardWhite)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(18.dp)) {
                 Text(
                     "Selecciona el motor de análisis. Flash Lite ahorra tokens, Flash es más preciso.",
                     fontSize = 12.sp, color = Color(0xFF9E9EA7), lineHeight = 18.sp
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedCard(
                         onClick = { if (llaveActual.isNotEmpty()) expandidoModelo = true },
@@ -249,7 +286,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(
                             1.5.dp,
-                            if (llaveActual.isNotEmpty()) PurpleMain.copy(0.3f) else Color(0xFFE8E8EE)
+                            if (llaveActual.isNotEmpty()) PurpleMain.copy(0.3f) else Color(0xFFE8EAF3)
                         )
                     ) {
                         Row(
@@ -258,13 +295,24 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 val display = modelosDisponibles.find { it.first == modeloActual }?.second ?: "Selecciona un modelo"
-                                Text(display, fontWeight = FontWeight.Bold, fontSize = 14.sp,
-                                    color = if (llaveActual.isNotEmpty()) TextDark else Color(0xFFB0B0BA))
-                                Text(modeloActual, fontSize = 10.sp,
-                                    color = PurpleMain.copy(if (llaveActual.isNotEmpty()) 1f else 0.4f))
+                                Text(
+                                    display,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = if (llaveActual.isNotEmpty()) TextDark else Color(0xFF9E9EA7)
+                                )
+                                Text(
+                                    modeloActual,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = PurpleMain.copy(if (llaveActual.isNotEmpty()) 1f else 0.4f)
+                                )
                             }
-                            Icon(Icons.Default.ArrowDropDown, null,
-                                tint = if (llaveActual.isNotEmpty()) PurpleMain else Color(0xFFB0B0BA))
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = if (llaveActual.isNotEmpty()) PurpleMain else Color(0xFF9E9EA7)
+                            )
                         }
                     }
                     DropdownMenu(
@@ -274,7 +322,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     ) {
                         modelosDisponibles.forEach { (id, nombre) ->
                             DropdownMenuItem(
-                                text = { Text(nombre, fontSize = 14.sp, fontWeight = FontWeight.Medium) },
+                                text = { Text(nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold) },
                                 onClick = { viewModel.guardarNuevoModelo(id); expandidoModelo = false },
                                 leadingIcon = { RadioButton(selected = id == modeloActual, onClick = null) }
                             )
@@ -284,9 +332,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             }
         }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(22.dp))
 
-        // ── SECCIÓN: Intervalo de guardado automático ─────────────────────────
         SectionLabel("GRABACIÓN")
 
         Card(
@@ -294,7 +341,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = CardWhite)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(18.dp)) {
                 Text(
                     "¿Cada cuánto tiempo guardar un segmento durante la grabación?",
                     fontSize = 12.sp, color = Color(0xFF9E9EA7), lineHeight = 18.sp
@@ -308,7 +355,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (seleccionado) PurpleMain.copy(alpha = 0.07f)
+                                if (seleccionado) PurpleMain.copy(alpha = 0.08f)
                                 else Color.Transparent
                             )
                             .clickable { viewModel.guardarIntervalo(segundos) }
@@ -321,11 +368,10 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         )
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            // Título de la opción (parte antes del "—")
                             val partes = etiqueta.split("—")
                             Text(
                                 partes[0].trim(),
-                                fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
+                                fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium,
                                 fontSize = 14.sp,
                                 color = if (seleccionado) PurpleMain else TextDark
                             )
@@ -337,17 +383,15 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                                 )
                             }
                         }
-                        // Badge "Recomendado"
                         if (segundos == AuthManager.INTERVALO_5_MIN) {
                             Spacer(Modifier.weight(1f))
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(PurpleMain.copy(0.1f))
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(PurpleMain.copy(0.12f))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
-                                Text("Recomendado", fontSize = 10.sp, color = PurpleMain,
-                                    fontWeight = FontWeight.SemiBold)
+                                Text("Recomendado", fontSize = 10.sp, color = PurpleMain, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -365,8 +409,11 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 @Composable
 private fun SectionLabel(texto: String) {
     Text(
-        texto, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-        color = Color(0xFFB0B0BA), letterSpacing = 1.5.sp,
+        texto,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF9E9EA7),
+        letterSpacing = 1.5.sp,
         modifier = Modifier.padding(start = 4.dp, bottom = 10.dp)
     )
 }

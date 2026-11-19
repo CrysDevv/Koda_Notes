@@ -13,25 +13,13 @@ import androidx.room.PrimaryKey
 data class ExamenEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
     val materiaId: Int,
-
-    // Fecha de realización (timestamp)
     val fecha: Long = System.currentTimeMillis(),
-
-    // Configuración del examen
     val totalPreguntas: Int,
-    val dificultad: String,   // "Fácil" | "Media" | "Difícil"
-
-    // Resultados
+    val dificultad: String,
     val correctas:   Int,
     val incorrectas: Int,
     val omitidas:    Int,
-
-    // Nota sobre 10 calculada en el ViewModel (correctas / total * 10)
     val nota: Float,
-
-    // JSON completo de preguntas + respuestas del usuario para poder repasar
-    // Formato: [{"pregunta":"...","opciones":[],"correcta":"A","seleccionada":"B","explicacion":"..."}]
     val preguntasJson: String
 )

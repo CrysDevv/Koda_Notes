@@ -1,5 +1,6 @@
 package app.kodanotes.data.audio
 
+import android.Manifest
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,7 +110,8 @@ class AudioRecorder(
         }
     }
 
-    @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
+    /** Inicia la captura continua de audio desde el micrófono. */
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun start(context: Context, outputDir: File) {
         if (_isRecording.value) return
         _isRecording.value = true
@@ -130,7 +133,6 @@ class AudioRecorder(
 
             var intentosReconexion = 0
 
-            // BUCLE EXTERNO: AUTO-RESURRECCIÓN
             while (_isRecording.value && isActive) {
                 var audioRecord: AudioRecord? = null
 
@@ -146,7 +148,7 @@ class AudioRecorder(
                     if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
                         Log.e("AUDIO_RECORDER", "AudioRecord no inicializado. Reintentando...")
                         audioRecord.release()
-                        kotlinx.coroutines.delay(500)
+                        delay(500)
                         intentosReconexion++
                         if (intentosReconexion > 5) {
                             Log.e("AUDIO_RECORDER", "Hardware irrecuperable tras 5 intentos.")
@@ -167,10 +169,8 @@ class AudioRecorder(
                     var fallosHardware = 0
                     var hardwareCrashed = false
 
-                    // DETECTOR DE SECUESTRO SILENCIOSO
                     var silenciosAbsolutosConsecutivos = 0
 
-                    // BUCLE INTERNO: LECTURA DE CHUNKS
                     while (_isRecording.value && isActive && !hardwareCrashed) {
                         val leidos = audioRecord.read(readBuffer, 0, readBuffer.size)
 
@@ -191,10 +191,8 @@ class AudioRecorder(
                         if (leidos > 0) {
                             val rms = calcularRMS(readBuffer, leidos)
 
-                            // Verificamos si el sistema operativo nos está enviando silencio falso
                             if (rms == 0.0f) {
                                 silenciosAbsolutosConsecutivos++
-                                // Aprox. 3 segundos de silencio absoluto = secuestro
                                 if (silenciosAbsolutosConsecutivos > 15) {
                                     Log.w("AUDIO_RECORDER", "Secuestro silencioso detectado (OS Mute). Forzando reinicio del hardware...")
                                     hardwareCrashed = true
@@ -225,7 +223,6 @@ class AudioRecorder(
                         }
                     }
 
-                    // Guardado del remanente al salir del bucle interno
                     val minimoMuestras = (SAMPLE_RATE * 0.5).toInt()
                     if (chunkFill >= minimoMuestras) {
                         val muestrasFinales = chunkBuffer.copyOf(chunkFill)
@@ -239,21 +236,21 @@ class AudioRecorder(
                     break
                 } catch (e: Exception) {
                     Log.e("AUDIO_RECORDER", "Excepción de hardware: ${e.message}")
-                    kotlinx.coroutines.delay(500)
+                    delay(500)
                 } finally {
                     try {
                         if (audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                             audioRecord.stop()
                         }
-                    } catch (e: Exception) { /* Ignorado en la limpieza */ }
+                    } catch (e: Exception) { }
 
                     try {
                         audioRecord?.release()
-                    } catch (e: Exception) { /* Ignorado en la limpieza */ }
+                    } catch (e: Exception) { }
 
                     Log.d("AUDIO_RECORDER", "Limpieza de intento completada. ¿Detención manual?: ${!_isRecording.value}")
                 }
-            } // FIN BUCLE EXTERNO
+            }
 
             grabacionesSnapshot = grabaciones.toList()
             abandonAudioFocus()
@@ -263,6 +260,7 @@ class AudioRecorder(
         }
     }
 
+    /** Detiene la grabación activa de audio. */
     fun stop() {
         _isRecording.value = false
     }

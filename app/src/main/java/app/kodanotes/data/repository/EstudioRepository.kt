@@ -12,10 +12,6 @@ class EstudioRepository(
     private val examenDao:    ExamenDao
 ) {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Flashcards
-    // ─────────────────────────────────────────────────────────────────────────
-
     /** Guarda un lote de cards generadas por la IA en una misma sesión. */
     suspend fun guardarFlashcards(cards: List<FlashcardEntity>) {
         flashcardDao.insertarFlashcards(cards)
@@ -39,14 +35,10 @@ class EstudioRepository(
         flashcardDao.borrarSesion(sesionId)
     }
 
-    /** Elimina todas las flashcards de una materia (cascade al borrar materia). */
+    /** Elimina todas las flashcards de una materia. */
     suspend fun borrarFlashcardsDe(materiaId: Int) {
         flashcardDao.borrarFlashcardsDe(materiaId)
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Exámenes
-    // ─────────────────────────────────────────────────────────────────────────
 
     /** Guarda el resultado completo de un examen terminado. */
     suspend fun guardarExamen(examen: ExamenEntity): Long =
@@ -60,7 +52,7 @@ class EstudioRepository(
     suspend fun obtenerExamenPorId(examenId: Int): ExamenEntity? =
         examenDao.obtenerExamenPorId(examenId)
 
-    /** Mejor nota histórica de una materia (para mostrar en el historial). */
+    /** Mejor nota histórica de una materia. */
     suspend fun mejorNota(materiaId: Int): Float? =
         examenDao.mejorNota(materiaId)
 
@@ -73,7 +65,7 @@ class EstudioRepository(
         examenDao.borrarExamen(examenId)
     }
 
-    /** Elimina todos los exámenes de una materia (cascade al borrar materia). */
+    /** Elimina todos los exámenes de una materia. */
     suspend fun borrarExamenesDe(materiaId: Int) {
         examenDao.borrarExamenesDe(materiaId)
     }

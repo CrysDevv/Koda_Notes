@@ -52,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -74,9 +75,6 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Colores internos
-// ─────────────────────────────────────────────────────────────────────────────
 private val H1Color   = Color(0xFF1A1A2E)
 private val H2Color   = Color(0xFF2D2D44)
 private val H3Color   = Color(0xFF3D3D5C)
@@ -96,52 +94,93 @@ fun CourseDetailScreen(
     Scaffold(containerColor = BackgroundLight) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-            // ── Header ────────────────────────────────────────────────────────
             Box(
-                modifier = Modifier.fillMaxWidth()
-                    .shadow(2.dp, spotColor = Color(0x0A000000))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(4.dp, spotColor = Color(0x10000000))
                     .background(CardWhite)
-                    .padding(horizontal = 16.dp, vertical = 20.dp)
+                    .padding(horizontal = 20.dp, vertical = 18.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier.size(40.dp).clip(CircleShape)
-                            .background(BackgroundLight).clickable { onBackClick() },
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF1F3FB))
+                            .clickable { onBackClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null,
-                            tint = TextDark, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = TextDark,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                     Spacer(Modifier.size(14.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(materia.colorHex)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(materia.simbolo, fontSize = 18.sp)
+                    }
+                    Spacer(Modifier.size(12.dp))
                     Column {
-                        Text(materia.nombre, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold,
-                            color = TextDark, letterSpacing = (-0.3).sp)
-                        Text("LISTADO DE CLASES", fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB0B0BA), letterSpacing = 1.sp)
+                        Text(
+                            materia.nombre,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextDark,
+                            letterSpacing = (-0.3).sp
+                        )
+                        Text(
+                            "LISTADO DE CLASES",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF9E9EA7),
+                            letterSpacing = 0.8.sp
+                        )
                     }
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
             if (notas.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
-                            modifier = Modifier.size(80.dp).clip(RoundedCornerShape(24.dp))
-                                .background(Color(0xFFF0F0F5)),
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color(0xFFF0EFFF)),
                             contentAlignment = Alignment.Center
                         ) { Text("📂", fontSize = 36.sp) }
                         Spacer(Modifier.height(16.dp))
-                        Text("No hay notas para esta clase", color = Color(0xFFBBBBC2),
-                            fontWeight = FontWeight.Medium, fontSize = 15.sp)
-                        Spacer(Modifier.height(8.dp))
-                        Text("Graba una clase para empezar", color = Color(0xFFCCCCD4), fontSize = 13.sp)
+                        Text(
+                            "No hay notas para esta clase",
+                            color = Color(0xFF6E6E82),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "Graba una clase para empezar",
+                            color = Color(0xFF9E9EA7),
+                            fontSize = 13.sp
+                        )
                     }
                 }
             } else {
-                Text("← Desliza para eliminar", fontSize = 12.sp, color = Color(0xFFCCCCD4),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                Text(
+                    "← Desliza para eliminar",
+                    fontSize = 12.sp,
+                    color = Color(0xFF9E9EA7),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                )
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -160,11 +199,11 @@ fun CourseDetailScreen(
         }
     }
 
-    // ── Confirmar eliminar nota ───────────────────────────────────────────────
     if (notaAEliminar != null) {
         AlertDialog(
             onDismissRequest = { notaAEliminar = null },
-            containerColor = CardWhite, shape = RoundedCornerShape(24.dp),
+            containerColor = CardWhite,
+            shape = RoundedCornerShape(24.dp),
             title = { Text("Eliminar nota", fontWeight = FontWeight.Bold, color = TextDark) },
             text  = { Text("¿Eliminar \"${notaAEliminar!!.titulo}\"? Esta acción no se puede deshacer.") },
             confirmButton = {
@@ -182,15 +221,11 @@ fun CourseDetailScreen(
         )
     }
 
-    // ── Lector de clase ───────────────────────────────────────────────────────
     if (claseSeleccionada != null) {
         DialogLectorClase(nota = claseSeleccionada!!, onDismiss = { claseSeleccionada = null })
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tarjeta con swipe-to-delete
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun ItemNotaSwipeable(nota: NotaEntity, onClick: () -> Unit, onDelete: () -> Unit) {
     val fechaFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(nota.fecha))
@@ -203,17 +238,23 @@ fun ItemNotaSwipeable(nota: NotaEntity, onClick: () -> Unit, onDelete: () -> Uni
     )
 
     Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(bgColor)) {
-        Row(modifier = Modifier.fillMaxWidth().height(72.dp),
-            horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(72.dp).clickable { onDelete() },
-                contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(76.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(76.dp).clickable { onDelete() },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(Icons.Default.Delete, null, tint = Color(0xFFFF3B30), modifier = Modifier.size(24.dp))
             }
         }
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .shadow(3.dp, RoundedCornerShape(20.dp), spotColor = Color(0x10000000))
+                .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color(0x12000000))
                 .background(bgColor, RoundedCornerShape(20.dp))
                 .clickable { onClick() }
                 .padding(16.dp)
@@ -225,25 +266,36 @@ fun ItemNotaSwipeable(nota: NotaEntity, onClick: () -> Unit, onDelete: () -> Uni
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp))
-                .background(Color(0xFFF0EFFF)), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFFF0EFFF)),
+                contentAlignment = Alignment.Center
+            ) {
                 Text("📄", fontSize = 22.sp)
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(nota.titulo, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TextDark)
                 Spacer(Modifier.height(4.dp))
-                Text("Análisis IA ✓", fontSize = 12.sp, color = PurpleMain, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.height(2.dp))
-                Text(fechaFormat, fontSize = 11.sp, color = Color(0xFFB0B0BA))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PurpleMain.copy(0.12f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("Análisis IA ✓", fontSize = 11.sp, color = PurpleMain, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(fechaFormat, fontSize = 11.sp, color = Color(0xFF9E9EA7))
+                }
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Diálogo lector con Markdown renderizado
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun DialogLectorClase(nota: NotaEntity, onDismiss: () -> Unit) {
     val niveles = nota.contenido.split("|||").map { it.trim() }
@@ -261,26 +313,34 @@ fun DialogLectorClase(nota: NotaEntity, onDismiss: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = BackgroundLight)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-
-                // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth().background(CardWhite)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(CardWhite)
                         .padding(horizontal = 20.dp, vertical = 18.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(nota.titulo, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold,
-                        color = TextDark, modifier = Modifier.weight(1f), letterSpacing = (-0.3).sp)
+                    Text(
+                        nota.titulo,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark,
+                        modifier = Modifier.weight(1f),
+                        letterSpacing = (-0.3).sp
+                    )
                     Box(
-                        modifier = Modifier.size(36.dp).clip(CircleShape)
-                            .background(BackgroundLight).clickable { onDismiss() },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(BackgroundLight)
+                            .clickable { onDismiss() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.Close, null, tint = Color(0xFF9E9EA7), modifier = Modifier.size(18.dp))
                     }
                 }
 
-                // Tabs
                 TabRow(
                     selectedTabIndex = tabSeleccionado,
                     containerColor   = CardWhite,
@@ -298,16 +358,17 @@ fun DialogLectorClase(nota: NotaEntity, onDismiss: () -> Unit) {
                             selected = tabSeleccionado == idx,
                             onClick  = { tabSeleccionado = idx },
                             text = {
-                                Text(label,
+                                Text(
+                                    label,
                                     fontWeight = if (tabSeleccionado == idx) FontWeight.Bold else FontWeight.Normal,
                                     fontSize = 13.sp,
-                                    color = if (tabSeleccionado == idx) PurpleMain else Color(0xFFB0B0BA))
+                                    color = if (tabSeleccionado == idx) PurpleMain else Color(0xFF9E9EA7)
+                                )
                             }
                         )
                     }
                 }
 
-                // Contenido con Markdown renderizado
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -322,10 +383,6 @@ fun DialogLectorClase(nota: NotaEntity, onDismiss: () -> Unit) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Renderizador Markdown — sin librerías externas
-// Soporta: # H1, ## H2, ### H3, **bold**, *italic*, - bullet, línea vacía
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun MarkdownContent(texto: String) {
     val lineas = texto.lines()
@@ -336,7 +393,6 @@ fun MarkdownContent(texto: String) {
             val linea = lineas[i].trimEnd()
 
             when {
-                // H1  →  # Título
                 linea.startsWith("# ") && !linea.startsWith("## ") -> {
                     val content = linea.removePrefix("# ").trim()
                     Spacer(Modifier.height(12.dp))
@@ -356,7 +412,6 @@ fun MarkdownContent(texto: String) {
                     Spacer(Modifier.height(8.dp))
                 }
 
-                // H2  →  ## Título
                 linea.startsWith("## ") && !linea.startsWith("### ") -> {
                     val content = linea.removePrefix("## ").trim()
                     Spacer(Modifier.height(16.dp))
@@ -376,7 +431,6 @@ fun MarkdownContent(texto: String) {
                     Spacer(Modifier.height(4.dp))
                 }
 
-                // H3  →  ### Título
                 linea.startsWith("### ") -> {
                     val content = linea.removePrefix("### ").trim()
                     Spacer(Modifier.height(14.dp))
@@ -398,7 +452,6 @@ fun MarkdownContent(texto: String) {
                     Spacer(Modifier.height(4.dp))
                 }
 
-                // Bullet  →  - ítem  o  * ítem
                 (linea.startsWith("- ") || linea.startsWith("* ")) -> {
                     val content = linea.removePrefix("- ").removePrefix("* ").trim()
                     Row(
@@ -422,12 +475,10 @@ fun MarkdownContent(texto: String) {
                     }
                 }
 
-                // Línea en blanco → espacio entre párrafos
                 linea.isBlank() -> {
                     Spacer(Modifier.height(8.dp))
                 }
 
-                // Párrafo normal
                 else -> {
                     Text(
                         text       = parsearInline(linea),
@@ -442,17 +493,13 @@ fun MarkdownContent(texto: String) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Parser inline: **bold**, *italic*, combinaciones
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun parsearInline(texto: String): androidx.compose.ui.text.AnnotatedString {
+private fun parsearInline(texto: String): AnnotatedString {
     return buildAnnotatedString {
         var idx = 0
         val s = texto
         while (idx < s.length) {
             when {
-                // **bold**
                 s.startsWith("**", idx) -> {
                     val end = s.indexOf("**", idx + 2)
                     if (end != -1) {
@@ -464,7 +511,6 @@ private fun parsearInline(texto: String): androidx.compose.ui.text.AnnotatedStri
                         append(s[idx]); idx++
                     }
                 }
-                // *italic*
                 s.startsWith("*", idx) -> {
                     val end = s.indexOf("*", idx + 1)
                     if (end != -1) {
@@ -476,7 +522,6 @@ private fun parsearInline(texto: String): androidx.compose.ui.text.AnnotatedStri
                         append(s[idx]); idx++
                     }
                 }
-                // `code`
                 s.startsWith("`", idx) -> {
                     val end = s.indexOf("`", idx + 1)
                     if (end != -1) {

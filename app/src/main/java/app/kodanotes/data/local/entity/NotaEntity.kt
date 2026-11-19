@@ -11,14 +11,14 @@ import androidx.room.PrimaryKey
             entity = MateriaEntity::class,
             parentColumns = ["id"],
             childColumns = ["materiaId"],
-            onDelete = ForeignKey.CASCADE // Si borras la materia, se borran sus notas automáticamente
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
 data class NotaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val materiaId: Int, // Relación con la materia
+    val materiaId: Int,
     val titulo: String,
     val contenido: String,
     val fecha: Long = System.currentTimeMillis()

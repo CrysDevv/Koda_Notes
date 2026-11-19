@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MateriaDao {
 
-    // ── Materias ──────────────────────────────────────────────────────────────
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarMateria(materia: MateriaEntity)
 
@@ -25,8 +23,6 @@ interface MateriaDao {
 
     @Query("SELECT * FROM tabla_materias WHERE id = :id")
     suspend fun obtenerMateriaPorId(id: Int): MateriaEntity?
-
-    // ── Notas ─────────────────────────────────────────────────────────────────
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarNota(nota: NotaEntity)
@@ -42,8 +38,6 @@ interface MateriaDao {
 
     @Query("SELECT * FROM tabla_notas ORDER BY fecha DESC LIMIT :limite")
     fun obtenerNotasRecientes(limite: Int = 5): Flow<List<NotaEntity>>
-
-    // ── Contadores ────────────────────────────────────────────────────────────
 
     @Query("UPDATE tabla_materias SET cantidadDocs = cantidadDocs + 1 WHERE id = :materiaId")
     suspend fun incrementarContadorDocs(materiaId: Int)

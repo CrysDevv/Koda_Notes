@@ -19,18 +19,12 @@ import java.nio.ByteOrder
  * base-encoder.int8.onnx
  * base-decoder.int8.onnx
  * base-tokens.txt
- *
- * Con el nuevo diseño de dos fases, este transcriptor trabaja DESPUÉS de que
- * el AudioRecord ya fue liberado — sin competencia de recursos con el micro.
  */
 class WhisperTranscriber(private val context: Context) {
 
     private var recognizer: OfflineRecognizer? = null
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Inicialización
-    // ─────────────────────────────────────────────────────────────────────────
-
+    /** Inicializa el reconocedor Whisper copiando modelos desde assets si es necesario. */
     fun inicializar(): Boolean {
         return try {
             val dir = File(context.filesDir, "whisper").also { it.mkdirs() }
@@ -84,10 +78,7 @@ class WhisperTranscriber(private val context: Context) {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Transcripción de un archivo WAV 16kHz mono PCM
-    // ─────────────────────────────────────────────────────────────────────────
-
+    /** Transcribe un archivo WAV (16kHz mono PCM) a texto usando Whisper. */
     fun transcribir(wavFile: File): String? {
         val rec = recognizer ?: run {
             Log.e("WHISPER", "Recognizer no inicializado")
@@ -97,7 +88,6 @@ class WhisperTranscriber(private val context: Context) {
         return try {
             val muestras = leerPCMDesdeWAV(wavFile) ?: return null
 
-            // Mínimo 0.5 s para que Whisper tenga contexto suficiente
             if (muestras.size < 8_000) {
                 Log.w("WHISPER", "Audio muy corto: ${muestras.size} muestras")
                 return null
@@ -120,10 +110,6 @@ class WhisperTranscriber(private val context: Context) {
             null
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers WAV
-    // ─────────────────────────────────────────────────────────────────────────
 
     private fun leerPCMDesdeWAV(file: File): FloatArray? {
         return try {
@@ -160,6 +146,7 @@ class WhisperTranscriber(private val context: Context) {
         return null
     }
 
+    /** Libera los recursos del reconocedor Whisper. */
     fun liberar() {
         try { recognizer?.release() } catch (e: Exception) {
             Log.w("WHISPER", "Error liberando recognizer: ${e.message}")

@@ -16,10 +16,10 @@ import app.kodanotes.data.local.entity.NotaEntity
     entities = [
         MateriaEntity::class,
         NotaEntity::class,
-        FlashcardEntity::class,   // Paso 2: tabla de flashcards
-        ExamenEntity::class       // Paso 2: tabla de exámenes
+        FlashcardEntity::class,
+        ExamenEntity::class
     ],
-    version = 3,                  // Subimos de 2 → 3 por las 2 tablas nuevas
+    version = 3,
     exportSchema = false
 )
 abstract class KodaNotesDatabase : RoomDatabase() {

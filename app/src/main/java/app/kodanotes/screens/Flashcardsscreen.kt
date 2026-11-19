@@ -2,13 +2,18 @@ package app.kodanotes.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +27,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -43,23 +50,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.kodanotes.ui.theme.BackgroundLight
 import app.kodanotes.ui.theme.CardWhite
-import app.kodanotes.ui.theme.PurpleMain
+import app.kodanotes.ui.theme.DarkContainer
+import app.kodanotes.ui.theme.PeachCard
+import app.kodanotes.ui.theme.TealAccent
 import app.kodanotes.ui.theme.TextDark
+import app.kodanotes.ui.theme.TextMuted
 import app.kodanotes.viewmodel.FlashcardsState
 import app.kodanotes.viewmodel.FlashcardsViewModel
 
-private val VerdeCard  = Color(0xFF34C759)
-private val RojoCard   = Color(0xFFFF3B30)
-private val GrisCard   = Color(0xFF8E8E93)
+private val VerdeCard  = Color(0xFF10B981)
+private val AmarilloCard = Color(0xFFF59E0B)
+private val RojoCard   = Color(0xFFEF4444)
 
 @Composable
 fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
@@ -87,43 +99,56 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
         when (estadoActual) {
 
             FlashcardsState.IDLE, FlashcardsState.ERROR -> {
-                // ── Pantalla de configuración ─────────────────────────────────
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(BackgroundLight)
-                        .padding(top = 56.dp, start = 24.dp, end = 24.dp, bottom = 100.dp)
+                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 100.dp)
                 ) {
                     item {
-                        Text("Flashcards", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold,
-                            color = TextDark, letterSpacing = (-0.5).sp)
-                        Text("Selecciona notas para estudiar", fontSize = 14.sp,
-                            color = Color(0xFF9E9EA7), fontWeight = FontWeight.Medium)
+                        Text(
+                            "Flashcards",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = TextDark,
+                            letterSpacing = (-0.5).sp
+                        )
+                        Text(
+                            "Selecciona notas para practicar",
+                            fontSize = 14.sp,
+                            color = TextMuted,
+                            fontWeight = FontWeight.Medium
+                        )
                         Spacer(Modifier.height(24.dp))
 
-                        // Error
                         AnimatedVisibility(estadoActual == FlashcardsState.ERROR) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFFFF0EF))
-                                    .padding(12.dp),
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color(0xFFFEE2E2))
+                                    .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("⚠ ${errorMsg ?: "Error desconocido"}",
-                                    fontSize = 13.sp, color = Color(0xFFCC1A12))
+                                Text(
+                                    "⚠ ${errorMsg ?: "Error desconocido"}",
+                                    fontSize = 13.sp,
+                                    color = Color(0xFFDC2626)
+                                )
                             }
                             Spacer(Modifier.height(12.dp))
                         }
 
-                        // Selector de materia
-                        Text("Materia", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF9E9EA7))
+                        Text(
+                            "MATERIA",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextMuted,
+                            letterSpacing = 1.sp
+                        )
                         Spacer(Modifier.height(8.dp))
                     }
 
-                    // Chips de materias
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -134,18 +159,16 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
-                                        .background(
-                                            if (seleccionada) Color(materia.colorHex).copy(0.15f)
-                                            else Color(0xFFF0F0F5)
-                                        )
+                                        .background(if (seleccionada) DarkContainer else CardWhite)
+                                        .border(1.dp, if (seleccionada) DarkContainer else Color(0xFFE5E7EB), RoundedCornerShape(20.dp))
                                         .clickable { viewModel.seleccionarMateria(materia) }
-                                        .padding(horizontal = 14.dp, vertical = 7.dp)
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
                                 ) {
                                     Text(
-                                        "${materia.simbolo} ${materia.nombre}",
+                                        materia.nombre,
                                         fontSize = 13.sp,
-                                        fontWeight = if (seleccionada) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (seleccionada) Color(materia.colorHex) else Color(0xFF9E9EA7)
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (seleccionada) Color.White else TextDark
                                     )
                                 }
                             }
@@ -153,11 +176,14 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                         Spacer(Modifier.height(20.dp))
                     }
 
-                    // Notas de la materia seleccionada
                     if (notas.isNotEmpty()) {
                         item {
-                            Text("Selecciona notas", fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold, color = Color(0xFF9E9EA7))
+                            Text(
+                                "Selecciona notas",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextMuted
+                            )
                             Spacer(Modifier.height(8.dp))
                         }
                         items(notas) { nota ->
@@ -165,53 +191,65 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 6.dp)
-                                    .shadow(if (seleccionada) 4.dp else 0.dp,
-                                        RoundedCornerShape(12.dp), spotColor = PurpleMain.copy(0.1f))
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .padding(bottom = 8.dp)
+                                    .shadow(
+                                        if (seleccionada) 4.dp else 0.dp,
+                                        RoundedCornerShape(14.dp),
+                                        spotColor = Color(0x20000000)
+                                    )
+                                    .clip(RoundedCornerShape(14.dp))
                                     .background(CardWhite)
                                     .clickable { viewModel.toggleNota(nota.id) }
-                                    .padding(12.dp),
+                                    .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Checkbox
                                 Box(
                                     modifier = Modifier
-                                        .size(20.dp)
+                                        .size(22.dp)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (seleccionada) PurpleMain else Color(0xFFEEEEF4))
+                                        .background(if (seleccionada) DarkContainer else Color(0xFFE8EAF3))
                                         .padding(2.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (seleccionada) {
-                                        Icon(Icons.Default.Check, null,
-                                            tint = Color.White, modifier = Modifier.size(14.dp))
+                                        Icon(
+                                            Icons.Default.Check,
+                                            null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp)
+                                        )
                                     }
                                 }
                                 Spacer(Modifier.width(12.dp))
                                 Column(Modifier.weight(1f)) {
-                                    Text(nota.titulo, fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium, color = TextDark,
-                                        maxLines = 1)
+                                    Text(
+                                        nota.titulo,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = TextDark,
+                                        maxLines = 1
+                                    )
                                 }
                             }
                         }
                         item { Spacer(Modifier.height(16.dp)) }
                     }
 
-                    // Configuración
                     if (materiaSeleccionada != null) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(20.dp),
                                 colors = CardDefaults.cardColors(containerColor = CardWhite)
                             ) {
-                                Column(Modifier.padding(16.dp)) {
-                                    Text("Cantidad de flashcards",
-                                        fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                                        color = TextDark)
-                                    Spacer(Modifier.height(12.dp))
+                                Column(Modifier.padding(18.dp)) {
+                                    Text(
+                                        "Cantidad de flashcards",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                    Spacer(Modifier.height(14.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.Center,
@@ -219,27 +257,34 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                                     ) {
                                         StepperButton("-") { viewModel.setCantidadCards(cantidad - 1) }
                                         Spacer(Modifier.width(24.dp))
-                                        Text("$cantidad", fontSize = 28.sp,
-                                            fontWeight = FontWeight.ExtraBold, color = PurpleMain)
+                                        Text(
+                                            "$cantidad",
+                                            fontSize = 28.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = TextDark
+                                        )
                                         Spacer(Modifier.width(24.dp))
                                         StepperButton("+") { viewModel.setCantidadCards(cantidad + 1) }
                                     }
-                                    Text("Mínimo 5 — máximo 20",
-                                        fontSize = 11.sp, color = Color(0xFFB0B0BA),
+                                    Text(
+                                        "Mínimo 5 — máximo 20",
+                                        fontSize = 11.sp,
+                                        color = TextMuted,
                                         modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center)
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
                             }
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(18.dp))
 
                             Button(
                                 onClick = { viewModel.generarFlashcards() },
                                 enabled = notasSeleccionadas.isNotEmpty(),
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                                shape = RoundedCornerShape(14.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = PurpleMain,
-                                    disabledContainerColor = Color(0xFFCCCCD4)
+                                    containerColor = DarkContainer,
+                                    disabledContainerColor = Color(0xFFD1D5DB)
                                 )
                             ) {
                                 Text(
@@ -247,7 +292,8 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                                         "Selecciona al menos una nota"
                                     else
                                         "Generar ${notasSeleccionadas.size} nota(s) → $cantidad cards",
-                                    fontWeight = FontWeight.Bold, fontSize = 14.sp
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -256,173 +302,292 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
             }
 
             FlashcardsState.GENERANDO -> {
-                // ── Pantalla de carga ─────────────────────────────────────────
-                Box(Modifier.fillMaxSize().background(BackgroundLight),
-                    contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(BackgroundLight),
+                    contentAlignment = Alignment.Center
+                ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = PurpleMain, modifier = Modifier.size(48.dp))
+                        CircularProgressIndicator(color = DarkContainer, modifier = Modifier.size(52.dp), strokeWidth = 4.dp)
                         Spacer(Modifier.height(20.dp))
-                        Text("Generando flashcards con IA...",
-                            fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                        Text("Esto puede tardar unos segundos",
-                            fontSize = 13.sp, color = Color(0xFF9E9EA7))
+                        Text(
+                            "Generando flashcards con IA...",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+                        Text(
+                            "Sintetizando puntos clave",
+                            fontSize = 13.sp,
+                            color = TextMuted
+                        )
                     }
                 }
             }
 
             FlashcardsState.SESION -> {
-                // ── Sesión de estudio ─────────────────────────────────────────
-                val colaRestante = total - contadorSe - contadorMasMenos
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(BackgroundLight)
-                        .padding(top = 56.dp, start = 24.dp, end = 24.dp, bottom = 100.dp),
+                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 100.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Barra de progreso
-                    val progreso = if (total > 0)
-                        (contadorSe + contadorMasMenos).toFloat() / total.toFloat()
-                    else 0f
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFFEEEEF4))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "Flashcards",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Black,
+                                color = TextDark,
+                                letterSpacing = (-0.5).sp
+                            )
+                            Text(
+                                "Selecciona notas para practicar",
+                                fontSize = 14.sp,
+                                color = TextMuted,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(progreso)
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(PurpleMain)
-                        )
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(DarkContainer)
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text("Todas", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                        materias.take(3).forEach { m ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(CardWhite)
+                                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(m.nombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            }
+                        }
                     }
+
                     Spacer(Modifier.height(16.dp))
 
-                    // Contadores
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .shadow(2.dp, RoundedCornerShape(24.dp), spotColor = Color(0x10000000))
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(CardWhite)
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ContadorChip(contadorSe, "Sé", VerdeCard)
-                        ContadorChip(colaRestante, "Restantes", Color(0xFF9E9EA7))
-                        ContadorChip(contadorNoSe, "Repasar", RojoCard)
+                        Text(
+                            "Dominio del mazo",
+                            fontSize = 13.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+                        val pct = if (total > 0) ((contadorSe.toFloat() / total) * 100).toInt() else 27
+                        Text(
+                            "$pct%  >>  ${100 - pct}%",
+                            fontSize = 13.sp,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            color = TealAccent
+                        )
                     }
-                    Spacer(Modifier.height(24.dp))
 
-                    // Card con flip
+                    Spacer(Modifier.height(20.dp))
+
                     cardActual?.let { card ->
                         var volteada by remember(card.id) { mutableStateOf(false) }
                         val rotacion by animateFloatAsState(
                             targetValue = if (volteada) 180f else 0f,
-                            animationSpec = tween(400),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            ),
                             label = "card_flip"
                         )
 
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp)
-                                .shadow(8.dp, RoundedCornerShape(24.dp),
-                                    spotColor = PurpleMain.copy(0.15f))
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(CardWhite)
+                                .height(260.dp)
+                                .shadow(8.dp, RoundedCornerShape(28.dp), spotColor = Color(0x15000000))
+                                .clip(RoundedCornerShape(28.dp))
+                                .background(PeachCard)
                                 .clickable { volteada = !volteada }
                                 .graphicsLayer {
                                     rotationY = rotacion
-                                    cameraDistance = 12f * density
+                                    cameraDistance = 14f * density
                                 }
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
+                                .padding(20.dp)
                         ) {
                             if (rotacion <= 90f) {
-                                // Frente
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(Color(0xFFEEEDFE))
-                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                Column(modifier = Modifier.fillMaxSize()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("Pregunta", fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold, color = PurpleMain)
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(CardWhite)
+                                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(
+                                                materiaSeleccionada?.nombre ?: "Ciberseguridad",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextDark
+                                            )
+                                        }
+                                        Text(
+                                            "${indice + 1} / $total",
+                                            fontSize = 13.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextDark
+                                        )
                                     }
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(card.pregunta, fontSize = 16.sp,
-                                        fontWeight = FontWeight.Medium, color = TextDark,
-                                        textAlign = TextAlign.Center, lineHeight = 24.sp)
-                                    Spacer(Modifier.height(12.dp))
-                                    Text("Toca para ver la respuesta",
-                                        fontSize = 12.sp, color = Color(0xFFB0B0BA))
+
+                                    Spacer(Modifier.weight(1f))
+
+                                    Text(
+                                        card.pregunta,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = TextDark,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 24.sp,
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                                    )
+
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "(Toca la tarjeta para ver la respuesta)",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF9E8B76),
+                                        fontWeight = FontWeight.Medium,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+
+                                    Spacer(Modifier.weight(1f))
+
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(44.dp)
+                                                .clip(CircleShape)
+                                                .background(DarkContainer),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Refresh,
+                                                contentDescription = "Voltear",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             } else {
-                                // Reverso (compensar el espejo)
                                 Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.graphicsLayer { rotationY = 180f }
+                                    modifier = Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(20.dp))
-                                            .background(Color(0xFFEAFAEE))
-                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("Respuesta", fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold, color = VerdeCard)
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(CardWhite)
+                                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(
+                                                "Respuesta",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = VerdeCard
+                                            )
+                                        }
+                                        Text(
+                                            "${indice + 1} / $total",
+                                            fontSize = 13.sp,
+                                            fontFamily = FontFamily.Monospace,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextDark
+                                        )
                                     }
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(card.respuesta, fontSize = 15.sp,
-                                        fontWeight = FontWeight.Normal, color = TextDark,
-                                        textAlign = TextAlign.Center, lineHeight = 22.sp)
+
+                                    Spacer(Modifier.weight(1f))
+
+                                    Text(
+                                        card.respuesta,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 23.sp,
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                                    )
+
+                                    Spacer(Modifier.weight(1f))
                                 }
                             }
                         }
 
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(20.dp))
 
-                        // Botones de respuesta
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            RespuestaBtn(
-                                texto = "No lo sé",
-                                color = RojoCard,
-                                bgColor = Color(0xFFFFF0EF),
+                            RespuestaPillBtn(
+                                dotColor = RojoCard,
+                                texto = "Difícil",
                                 modifier = Modifier.weight(1f),
                                 onClick = { volteada = false; viewModel.responder(0) }
                             )
-                            RespuestaBtn(
-                                texto = "Más o menos",
-                                color = GrisCard,
-                                bgColor = Color(0xFFF0F0F5),
+                            RespuestaPillBtn(
+                                dotColor = AmarilloCard,
+                                texto = "Bien",
                                 modifier = Modifier.weight(1f),
                                 onClick = { volteada = false; viewModel.responder(1) }
                             )
-                            RespuestaBtn(
-                                texto = "Lo sé",
-                                color = VerdeCard,
-                                bgColor = Color(0xFFEAFAEE),
+                            RespuestaPillBtn(
+                                dotColor = VerdeCard,
+                                texto = "Fácil",
                                 modifier = Modifier.weight(1f),
                                 onClick = { volteada = false; viewModel.responder(2) }
                             )
-                        }
-
-                        Spacer(Modifier.height(12.dp))
-                        TextButton(
-                            onClick = { viewModel.saltarCard() },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Saltar →", color = Color(0xFFB0B0BA), fontSize = 13.sp)
                         }
                     }
                 }
             }
 
             FlashcardsState.COMPLETADO -> {
-                // ── Pantalla de completado ────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -431,35 +596,50 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CheckCircle, null,
-                            tint = VerdeCard, modifier = Modifier.size(72.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE6F7F0)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                null,
+                                tint = VerdeCard,
+                                modifier = Modifier.size(52.dp)
+                            )
+                        }
                         Spacer(Modifier.height(20.dp))
-                        Text("¡Sesión completada!", fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold, color = TextDark)
+                        Text(
+                            "¡Sesión completada!",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextDark
+                        )
                         Spacer(Modifier.height(8.dp))
-                        Text("Has repasado todas las flashcards",
-                            fontSize = 14.sp, color = Color(0xFF9E9EA7))
-                        Spacer(Modifier.height(32.dp))
+                        Text(
+                            "Has repasado todas las tarjetas",
+                            fontSize = 14.sp,
+                            color = TextMuted
+                        )
+                        Spacer(Modifier.height(30.dp))
 
-                        // Resumen
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            ResumenChip("$contadorSe", "Lo sé", VerdeCard,
-                                Modifier.weight(1f))
-                            ResumenChip("$contadorMasMenos", "Más o menos", GrisCard,
-                                Modifier.weight(1f))
-                            ResumenChip("$contadorNoSe", "Repasar", RojoCard,
-                                Modifier.weight(1f))
+                            ResumenChip("$contadorSe", "Lo sé", VerdeCard, Modifier.weight(1f))
+                            ResumenChip("$contadorMasMenos", "Más o menos", AmarilloCard, Modifier.weight(1f))
+                            ResumenChip("$contadorNoSe", "Repasar", RojoCard, Modifier.weight(1f))
                         }
                         Spacer(Modifier.height(32.dp))
 
                         Button(
                             onClick = { viewModel.reiniciarSesion() },
                             modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PurpleMain)
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkContainer)
                         ) {
                             Text("Repetir sesión", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         }
@@ -468,7 +648,7 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                             onClick = { viewModel.volverAConfigurar() },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Nueva sesión", color = Color(0xFF9E9EA7), fontSize = 14.sp)
+                            Text("Nueva sesión", color = TextMuted, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -477,48 +657,60 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
     }
 }
 
-// ── Componentes privados ──────────────────────────────────────────────────────
-
 @Composable
 private fun StepperButton(label: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFF0F0F5))
+            .size(42.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF1F3FB))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextDark)
     }
 }
 
 @Composable
-private fun ContadorChip(valor: Int, label: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("$valor", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        Text(label, fontSize = 11.sp, color = Color(0xFF9E9EA7), fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
-private fun RespuestaBtn(
+private fun RespuestaPillBtn(
+    dotColor: Color,
     texto: String,
-    color: Color,
-    bgColor: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        label = "btn_scale"
+    )
+
     Box(
         modifier = modifier
             .height(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(bgColor)
-            .clickable { onClick() },
+            .scale(scale)
+            .shadow(2.dp, RoundedCornerShape(24.dp), spotColor = Color(0x10000000))
+            .clip(RoundedCornerShape(24.dp))
+            .background(CardWhite)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Text(texto, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color,
-            textAlign = TextAlign.Center)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(8.dp).background(dotColor, CircleShape))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                texto,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark
+            )
+        }
     }
 }
 
@@ -526,12 +718,14 @@ private fun RespuestaBtn(
 private fun ResumenChip(valor: String, label: String, color: Color, modifier: Modifier) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .shadow(4.dp, RoundedCornerShape(16.dp), spotColor = Color(0x0C000000))
+            .clip(RoundedCornerShape(16.dp))
             .background(CardWhite)
             .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(valor, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        Text(label, fontSize = 11.sp, color = Color(0xFF9E9EA7))
+        Spacer(Modifier.height(2.dp))
+        Text(label, fontSize = 11.sp, color = TextMuted, fontWeight = FontWeight.Medium)
     }
 }

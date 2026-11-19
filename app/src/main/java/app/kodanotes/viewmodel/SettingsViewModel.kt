@@ -16,8 +16,6 @@ class SettingsViewModel(
     private val geminiService: GeminiService
 ) : ViewModel() {
 
-    // ── Modelos disponibles ───────────────────────────────────────────────────
-    // Serie 2.5 — activos, con cuota gratuita y soporte de audio
     private val _modelosDisponibles = MutableStateFlow(
         listOf(
             "gemini-2.5-flash-lite"  to "Gemini 2.5 Flash Lite  — Rápido, bajo consumo",
@@ -27,7 +25,6 @@ class SettingsViewModel(
     )
     val modelosDisponibles = _modelosDisponibles.asStateFlow()
 
-    // ── API Key ───────────────────────────────────────────────────────────────
     private val _apiKeyActual = MutableStateFlow(authManager.obtenerApiKey() ?: "")
     val apiKeyActual: StateFlow<String> = _apiKeyActual.asStateFlow()
 
@@ -40,7 +37,6 @@ class SettingsViewModel(
     private val _validationError = MutableStateFlow<String?>(null)
     val validationError = _validationError.asStateFlow()
 
-    // ── Nombre de usuario ─────────────────────────────────────────────────────
     private val _nombreUsuario = MutableStateFlow(authManager.obtenerNombre())
     val nombreUsuario: StateFlow<String> = _nombreUsuario.asStateFlow()
 
@@ -49,8 +45,6 @@ class SettingsViewModel(
         _nombreUsuario.value = authManager.obtenerNombre()
     }
 
-    // ── Intervalo de guardado automático ──────────────────────────────────────
-    // Las tres opciones disponibles: 3 min, 5 min, 10 min
     val opcionesIntervalo = listOf(
         AuthManager.INTERVALO_3_MIN  to "3 minutos  — Clases densas",
         AuthManager.INTERVALO_5_MIN  to "5 minutos  — Equilibrado (recomendado)",
@@ -59,10 +53,6 @@ class SettingsViewModel(
 
     private val _intervaloSeleccionado = MutableStateFlow(authManager.obtenerIntervaloGuardado())
     val intervaloSeleccionado: StateFlow<Int> = _intervaloSeleccionado.asStateFlow()
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Acciones
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun guardarNuevoModelo(id: String) {
         authManager.guardarModelo(id)
@@ -89,7 +79,7 @@ class SettingsViewModel(
         }
     }
 
-    /** Guarda el intervalo elegido y actualiza el StateFlow — la próxima grabación lo usará. */
+    /** Guarda el intervalo elegido y actualiza el StateFlow. */
     fun guardarIntervalo(segundos: Int) {
         authManager.guardarIntervalo(segundos)
         _intervaloSeleccionado.value = segundos

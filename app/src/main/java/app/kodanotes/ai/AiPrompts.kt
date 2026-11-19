@@ -10,18 +10,12 @@ package app.kodanotes.ai
  */
 object AiPrompts {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TRANSCRIPCIÓN DE CHUNK
-    // ─────────────────────────────────────────────────────────────────────────
     const val TRANSCRIPCION_CHUNK =
         "Transcribe literalmente el siguiente fragmento de audio de una clase universitaria. " +
                 "Devuelve ÚNICAMENTE el texto hablado, sin puntuación excesiva, sin comentarios. " +
                 "Si no hay voz, devuelve cadena vacía."
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ANÁLISIS DE SEGMENTO — llamada independiente, costo fijo ~2 800 tokens
-    // Llamado: AiPrompts.analisisSegmento(transcripcion, numero, totalEstimado)
-    // ─────────────────────────────────────────────────────────────────────────
+    /** Genera el prompt para analizar un segmento específico de la clase. */
     fun analisisSegmento(
         transcripcion:   String,
         numero:          Int,
@@ -49,10 +43,7 @@ Apunte detallado del contenido: conceptos, ejemplos, pasos, leyes o técnicas me
 Solo datos duros: términos técnicos reales, fórmulas, fechas, nombres clave. En viñetas directas. No incluyas palabras entre comillas si son errores evidentes.
     """.trimIndent()
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ANÁLISIS CLASE COMPLETA (sesión corta, una sola grabación)
-    // Llamado: AiPrompts.analisisClase(transcripcion)
-    // ─────────────────────────────────────────────────────────────────────────
+    /** Genera el prompt para analizar una clase corta completa en una sola llamada. */
     fun analisisClase(transcripcion: String): String = """
 Eres el mejor asistente académico universitario. Convierte esta transcripción en material de estudio.
 
@@ -78,11 +69,7 @@ Solo datos duros reales y verificables del contexto de la clase.
 Todo en viñetas directas, sin relleno. Ignora errores de la transcripción.
     """.trimIndent()
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RESUMEN GLOBAL — llamada única al final de una clase larga
-    // Recibe los Cheat Sheets de todos los segmentos (muy compactos)
-    // Llamado: AiPrompts.resumenGlobal(cheatSheets)
-    // ─────────────────────────────────────────────────────────────────────────
+    /** Genera el prompt para el resumen ejecutivo global a partir de los Cheat Sheets de cada segmento. */
     fun resumenGlobal(cheatSheets: List<String>): String {
         val numerados = cheatSheets.mapIndexed { i, cs ->
             "=== SEGMENTO ${i + 1} ===\n$cs"
@@ -118,9 +105,7 @@ Lista consolidada de los conceptos clave.
         """.trimIndent()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FLASHCARDS — JSON puro
-    // ─────────────────────────────────────────────────────────────────────────
+    /** Genera el prompt para crear flashcards de estudio en formato JSON. */
     fun flashcards(contenidoClase: String, cantidad: Int = 10): String = """
 Genera exactamente $cantidad flashcards de estudio a partir del siguiente contenido.
 Ignora cualquier palabra extraña o entre comillas que parezca un error de transcripción. Basa las preguntas solo en los conceptos coherentes y reales.
@@ -134,9 +119,7 @@ CONTENIDO:
 $contenidoClase
     """.trimIndent()
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // EXAMEN SIMULADO — JSON puro
-    // ─────────────────────────────────────────────────────────────────────────
+    /** Genera el prompt para crear un examen simulado de opción múltiple en formato JSON. */
     fun examenSimulado(contenidoClase: String, cantidad: Int = 10, dificultad: String = "Media"): String = """
 Genera exactamente $cantidad preguntas de opción múltiple (A/B/C/D) de dificultad $dificultad basadas estrictamente en el contenido proporcionado.
 CUIDADO: El contenido puede tener errores de transcripción de voz. Evita crear preguntas sobre términos extraños o frases entre comillas que no tengan sentido en el contexto de la materia.
@@ -155,8 +138,5 @@ CONTENIDO DE LA CLASE:
 $contenidoClase
     """.trimIndent()
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // VALIDACIÓN DE CONEXIÓN
-    // ─────────────────────────────────────────────────────────────────────────
     const val VALIDAR_CONEXION = "Responde solo con la palabra: OK"
 }

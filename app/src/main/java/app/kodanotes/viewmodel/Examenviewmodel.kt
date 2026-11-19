@@ -1,5 +1,6 @@
 package app.kodanotes.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,23 +20,24 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import org.json.JSONObject
 
 enum class ExamenState {
-    IDLE,        // Pantalla de configuración
-    GENERANDO,   // Llamada a Gemini en curso
-    EN_EXAMEN,   // Respondiendo preguntas
-    RESULTADO,   // Examen terminado, mostrando resultados
-    REPASO,      // Repasando respuestas incorrectas
+    IDLE,
+    GENERANDO,
+    EN_EXAMEN,
+    RESULTADO,
+    REPASO,
     ERROR
 }
 
-/** Representa una pregunta durante la sesión activa */
+/** Representa una pregunta durante la sesión activa del examen. */
 data class PreguntaActiva(
     val pregunta:          String,
     val opciones:          List<String>,
     val respuestaCorrecta: String,
     val explicacion:       String,
-    var seleccionada:      String? = null  // null = omitida
+    var seleccionada:      String? = null
 )
 
 class ExamenViewModel(
@@ -43,8 +45,6 @@ class ExamenViewModel(
     private val estudioRepository: EstudioRepository,
     private val geminiService:     GeminiService
 ) : ViewModel() {
-
-    // ── States públicos ───────────────────────────────────────────────────────
 
     val materias: StateFlow<List<MateriaEntity>> = materiaRepository.todasLasMaterias
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -54,8 +54,6 @@ class ExamenViewModel(
 
     private val _errorMsg = MutableStateFlow<String?>(null)
     val errorMsg = _errorMsg.asStateFlow()
-
-    // ── Configuración ─────────────────────────────────────────────────────────
 
     private val _materiaSeleccionada = MutableStateFlow<MateriaEntity?>(null)
     val materiaSeleccionada = _materiaSeleccionada.asStateFlow()
@@ -72,23 +70,16 @@ class ExamenViewModel(
     private val _dificultad = MutableStateFlow("Media")
     val dificultad = _dificultad.asStateFlow()
 
-    // ── Sesión activa ─────────────────────────────────────────────────────────
-
     private val _preguntas = MutableStateFlow<List<PreguntaActiva>>(emptyList())
     val preguntas = _preguntas.asStateFlow()
 
     private val _indiceActual = MutableStateFlow(0)
     val indiceActual = _indiceActual.asStateFlow()
 
-    // FIX #3: preguntaActual ahora es un StateFlow reactivo derivado con combine.
-    // Antes era una propiedad con getter que creaba un nuevo MutableStateFlow en cada
-    // acceso — la UI nunca recibía actualizaciones cuando cambiaba _indiceActual.
     val preguntaActual: StateFlow<PreguntaActiva?> =
         combine(_preguntas, _indiceActual) { preguntas, indice ->
             preguntas.getOrNull(indice)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    // ── Resultado ─────────────────────────────────────────────────────────────
 
     private val _examenGuardado = MutableStateFlow<ExamenEntity?>(null)
     val examenGuardado = _examenGuardado.asStateFlow()
@@ -107,10 +98,6 @@ class ExamenViewModel(
 
     private val _indiceRepaso = MutableStateFlow(0)
     val indiceRepaso = _indiceRepaso.asStateFlow()
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Configuración
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun seleccionarMateria(materia: MateriaEntity) {
         _materiaSeleccionada.value = materia
@@ -140,10 +127,6 @@ class ExamenViewModel(
     fun setDificultad(nivel: String) {
         _dificultad.value = nivel
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Generación
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun generarExamen() {
         val notasIds = _notasSeleccionadas.value
@@ -182,10 +165,6 @@ class ExamenViewModel(
             _state.value        = ExamenState.EN_EXAMEN
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Sesión de examen
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun responder(opcion: String) {
         val lista   = _preguntas.value.toMutableList()
@@ -244,10 +223,6 @@ class ExamenViewModel(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Repaso de errores
-    // ─────────────────────────────────────────────────────────────────────────
-
     fun iniciarRepaso() {
         if (_preguntasRepaso.value.isEmpty()) return
         _indiceRepaso.value = 0
@@ -266,10 +241,6 @@ class ExamenViewModel(
     fun volverDeRepaso() {
         _state.value = ExamenState.RESULTADO
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Historial
-    // ─────────────────────────────────────────────────────────────────────────
 
     private fun cargarHistorial(materiaId: Int) {
         viewModelScope.launch {
@@ -303,13 +274,8 @@ class ExamenViewModel(
         _indiceActual.value       = 0
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helpers JSON
-    // ─────────────────────────────────────────────────────────────────────────
-
     private fun parsearPreguntas(jsonStr: String): List<PreguntaActiva> {
         return try {
-            // Limpiar posibles bloques de código Markdown que la IA a veces incluye
             var jsonLimpio = jsonStr.trim()
             if (jsonLimpio.startsWith("```json")) {
                 jsonLimpio = jsonLimpio.removePrefix("```json")
@@ -333,7 +299,7 @@ class ExamenViewModel(
                 else PreguntaActiva(pregunta, opciones, correcta, explicacion)
             }
         } catch (e: Exception) {
-            android.util.Log.e("EXAMEN_VM", "Error parseando JSON de preguntas: ${e.message}\nJSON recibido: $jsonStr")
+            Log.e("EXAMEN_VM", "Error parseando JSON de preguntas: ${e.message}\nJSON recibido: $jsonStr")
             emptyList()
         }
     }
@@ -342,7 +308,7 @@ class ExamenViewModel(
         return try {
             val array = JSONArray()
             preguntas.forEach { p ->
-                val obj = org.json.JSONObject()
+                val obj = JSONObject()
                 obj.put("pregunta",          p.pregunta)
                 obj.put("opciones",          JSONArray(p.opciones))
                 obj.put("respuestaCorrecta", p.respuestaCorrecta)

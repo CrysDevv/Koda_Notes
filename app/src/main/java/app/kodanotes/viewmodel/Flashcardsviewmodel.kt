@@ -20,10 +20,10 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 enum class FlashcardsState {
-    IDLE,           // Pantalla de configuración
-    GENERANDO,      // Llamada a Gemini en curso
-    SESION,         // Sesión de estudio activa
-    COMPLETADO,     // Todas las cards vistas al menos una vez
+    IDLE,
+    GENERANDO,
+    SESION,
+    COMPLETADO,
     ERROR
 }
 
@@ -33,8 +33,6 @@ class FlashcardsViewModel(
     private val geminiService:     GeminiService
 ) : ViewModel() {
 
-    // ── States públicos ───────────────────────────────────────────────────────
-
     val materias: StateFlow<List<MateriaEntity>> = materiaRepository.todasLasMaterias
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -43,8 +41,6 @@ class FlashcardsViewModel(
 
     private val _errorMsg = MutableStateFlow<String?>(null)
     val errorMsg = _errorMsg.asStateFlow()
-
-    // ── Configuración ─────────────────────────────────────────────────────────
 
     private val _materiaSeleccionada = MutableStateFlow<MateriaEntity?>(null)
     val materiaSeleccionada = _materiaSeleccionada.asStateFlow()
@@ -58,15 +54,7 @@ class FlashcardsViewModel(
     private val _cantidadCards = MutableStateFlow(10)
     val cantidadCards = _cantidadCards.asStateFlow()
 
-    // ── Sesión activa ─────────────────────────────────────────────────────────
-
-    // Cola de cards en juego (se mezcla cuando hay "No lo sé")
     private val _colaCards = MutableStateFlow<List<FlashcardEntity>>(emptyList())
-
-    // FIX #5: Guardar las cards originales para poder reiniciar la sesión
-    // correctamente. Cuando el estado es COMPLETADO la cola ya está vacía
-    // porque todas las cards fueron retiradas, así que reiniciarSesion()
-    // necesita esta copia para reconstruirla.
     private var cardsOriginales: List<FlashcardEntity> = emptyList()
 
     private val _indiceActual = MutableStateFlow(0)
@@ -86,10 +74,6 @@ class FlashcardsViewModel(
 
     private val _totalCards = MutableStateFlow(0)
     val totalCards = _totalCards.asStateFlow()
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Configuración
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun seleccionarMateria(materia: MateriaEntity) {
         _materiaSeleccionada.value  = materia
@@ -114,10 +98,6 @@ class FlashcardsViewModel(
     fun setCantidadCards(cantidad: Int) {
         _cantidadCards.value = cantidad.coerceIn(5, 20)
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Generación
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun generarFlashcards() {
         val notasIds = _notasSeleccionadas.value
@@ -153,12 +133,7 @@ class FlashcardsViewModel(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Sesión de estudio
-    // ─────────────────────────────────────────────────────────────────────────
-
     private fun iniciarSesion(cards: List<FlashcardEntity>) {
-        // FIX #5: Guardar copia de las cards originales antes de mezclarlas
         cardsOriginales       = cards
         _colaCards.value      = cards.shuffled()
         _indiceActual.value   = 0
@@ -171,10 +146,10 @@ class FlashcardsViewModel(
     }
 
     /**
-     * El usuario responde a la card actual.
-     * - "Lo sé" (2)       → se retira de la cola, suma al contador verde
-     * - "Más o menos" (1) → se retira de la cola, suma al contador gris
-     * - "No lo sé" (0)    → vuelve a la cola en posición aleatoria
+     * Registra la respuesta del usuario a la card actual.
+     * - 2 ("Lo sé"): se retira de la cola.
+     * - 1 ("Más o menos"): se retira de la cola.
+     * - 0 ("No lo sé"): vuelve a la cola.
      */
     fun responder(resultado: Int) {
         val cola   = _colaCards.value.toMutableList()
@@ -227,8 +202,6 @@ class FlashcardsViewModel(
         _cardActual.value   = cola[siguiente]
     }
 
-    // FIX #5: Usar cardsOriginales en lugar de _colaCards (que ya está vacía
-    // en estado COMPLETADO porque todas las cards fueron retiradas).
     fun reiniciarSesion() {
         if (cardsOriginales.isEmpty()) return
         iniciarSesion(cardsOriginales)
@@ -242,20 +215,14 @@ class FlashcardsViewModel(
         _notasSeleccionadas.value = emptySet()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Parser JSON
-    // ─────────────────────────────────────────────────────────────────────────
-
     private fun parsearFlashcards(json: String, materiaId: Int): List<FlashcardEntity> {
         return try {
             val sesionId = System.currentTimeMillis()
 
-            // 1. Limpiamos las etiquetas markdown que la IA suele añadir
             val cleanJson = json.replace("```json", "")
                 .replace("```", "")
                 .trim()
 
-            // 2. Ahora sí parseamos el JSON limpio
             val array = JSONArray(cleanJson)
 
             (0 until array.length()).mapNotNull { i ->

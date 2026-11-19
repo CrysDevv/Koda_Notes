@@ -1,11 +1,15 @@
 package app.kodanotes.ai
 
 import android.util.Base64
+import android.util.Log
 import app.kodanotes.data.security.AuthManager
+import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -20,7 +24,7 @@ interface GeminiApi {
         @Body request: GeminiRequest
     ): GeminiResponse
 
-    @retrofit2.http.GET("v1beta/models")
+    @GET("v1beta/models")
     suspend fun listarModelos(@Query("key") apiKey: String): ModelListResponse
 }
 
@@ -36,14 +40,12 @@ data class GeminiError(val message: String)
 
 class GeminiService(private val authManager: AuthManager) {
 
-    // ✅ Cliente HTTP con 5 minutos de tiempo de espera (300 segundos)
     private val client = OkHttpClient.Builder()
         .connectTimeout(300, TimeUnit.SECONDS)
         .readTimeout(300, TimeUnit.SECONDS)
         .writeTimeout(300, TimeUnit.SECONDS)
         .build()
 
-    // ✅ Asignamos el cliente a Retrofit
     private val api = Retrofit.Builder()
         .baseUrl("https://generativelanguage.googleapis.com/")
         .client(client)
@@ -51,9 +53,10 @@ class GeminiService(private val authManager: AuthManager) {
         .build()
         .create(GeminiApi::class.java)
 
-    /** Verifica si hay una API key configurada sin hacer llamadas de red */
+    /** Verifica si hay una API key configurada sin hacer llamadas de red. */
     fun tieneApiKey(): Boolean = !authManager.obtenerApiKey().isNullOrBlank()
 
+    /** Valida los credenciales e invoca la API de Gemini para generar respuesta al prompt dado. */
     suspend fun validarYGenerar(prompt: String): String? {
         val key = authManager.obtenerApiKey()
         var modelo = authManager.obtenerModelo()
@@ -63,7 +66,7 @@ class GeminiService(private val authManager: AuthManager) {
         val request = GeminiRequest(listOf(Content(listOf(Part(text = prompt)))))
         val maxReintentos = 3
         var reintentoActual = 0
-        var tiempoEsperaMs = 2000L // 2 segundos iniciales
+        var tiempoEsperaMs = 2000L
 
         while (reintentoActual < maxReintentos) {
             try {
@@ -73,19 +76,18 @@ class GeminiService(private val authManager: AuthManager) {
                 } else {
                     response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
                 }
-            } catch (e: retrofit2.HttpException) {
-                // Si es 503 (Unavailable) o 429 (Too Many Requests), esperamos y reintentamos
+            } catch (e: HttpException) {
                 if (e.code() == 503 || e.code() == 429) {
-                    android.util.Log.w("GEMINI_REST", "Error ${e.code()}. Reintentando en ${tiempoEsperaMs}ms...")
-                    kotlinx.coroutines.delay(tiempoEsperaMs)
+                    Log.w("GEMINI_REST", "Error ${e.code()}. Reintentando en ${tiempoEsperaMs}ms...")
+                    delay(tiempoEsperaMs)
                     reintentoActual++
-                    tiempoEsperaMs *= 2 // Exponential backoff: 2s -> 4s -> 8s
+                    tiempoEsperaMs *= 2
                 } else {
-                    android.util.Log.e("GEMINI_REST", "Error HTTP: ${e.code()} - ${e.message()}")
+                    Log.e("GEMINI_REST", "Error HTTP: ${e.code()} - ${e.message()}")
                     return "Error de servidor: ${e.code()}"
                 }
             } catch (e: Exception) {
-                android.util.Log.e("GEMINI_REST", "Fallo de red: ${e.message}")
+                Log.e("GEMINI_REST", "Fallo de red: ${e.message}")
                 return "Error de conexión: ${e.localizedMessage}"
             }
         }
@@ -94,7 +96,7 @@ class GeminiService(private val authManager: AuthManager) {
 
     /**
      * Transcribe un archivo WAV enviándolo a Gemini como audio inline.
-     * El archivo se codifica en Base64 en bloques de 8KB — sin OOM.
+     * El archivo se codifica en Base64 en bloques de 8KB.
      * Devuelve el texto transcrito o null si hay error.
      */
     suspend fun transcribirAudio(audioFile: File): String? {
@@ -121,25 +123,27 @@ class GeminiService(private val authManager: AuthManager) {
             )
             val response = api.generarContenido(modelo, key, request)
             if (response.error != null) {
-                android.util.Log.e("GEMINI_AUDIO", "Error: ${response.error.message}")
+                Log.e("GEMINI_AUDIO", "Error: ${response.error.message}")
                 null
             } else {
                 response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             }
-        } catch (e: retrofit2.HttpException) {
-            android.util.Log.e("GEMINI_AUDIO", "HTTP ${e.code()}: ${e.response()?.errorBody()?.string()}")
+        } catch (e: HttpException) {
+            Log.e("GEMINI_AUDIO", "HTTP ${e.code()}: ${e.response()?.errorBody()?.string()}")
             null
         } catch (e: Exception) {
-            android.util.Log.e("GEMINI_AUDIO", "Error: ${e.message}")
+            Log.e("GEMINI_AUDIO", "Error: ${e.message}")
             null
         }
     }
 
+    /** Comprueba si la conexión con Gemini funciona correctamente enviando un prompt de prueba. */
     suspend fun validarConexion(): Boolean {
         val respuesta = validarYGenerar(AiPrompts.VALIDAR_CONEXION)
         return respuesta != null && (respuesta.contains("OK", ignoreCase = true) || respuesta.length > 2)
     }
 
+    /** Obtiene el listado de modelos disponibles en la API de Gemini. */
     suspend fun obtenerModelosDisponibles(): List<Pair<String, String>> {
         val key = authManager.obtenerApiKey() ?: return emptyList()
         return try {

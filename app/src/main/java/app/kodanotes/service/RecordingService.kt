@@ -1,5 +1,6 @@
 package app.kodanotes.service
 
+import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,7 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo // Importación obligatoria para los tipos de Foreground Service
+import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -36,8 +37,6 @@ class RecordingService : Service() {
         createNotificationChannel()
         val notification = buildNotification()
 
-        // FIX: En Android 10 (API 29) o superior, el sistema matará el acceso al micrófono
-        // cuando la pantalla se apague si no le pasas el FOREGROUND_SERVICE_TYPE_MICROPHONE explícitamente.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFICATION_ID,
@@ -45,7 +44,6 @@ class RecordingService : Service() {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             )
         } else {
-            // Para versiones antiguas de Android, funciona como antes.
             startForeground(NOTIFICATION_ID, notification)
         }
     }
@@ -67,9 +65,9 @@ class RecordingService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("EduNotes AI — Grabando")
             .setContentText("🔴 Clase en curso. Toca para volver a la app.")
-            .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+            .setSmallIcon(R.drawable.ic_btn_speak_now)
             .setContentIntent(openIntent)
-            .addAction(android.R.drawable.ic_media_pause, "Detener", stopPending)
+            .addAction(R.drawable.ic_media_pause, "Detener", stopPending)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
@@ -77,7 +75,7 @@ class RecordingService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val mgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val mgr = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
                 mgr.createNotificationChannel(
                     NotificationChannel(

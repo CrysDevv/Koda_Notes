@@ -8,7 +8,7 @@ data class MateriaEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val nombre: String,
-    val colorHex: Long, // Guardaremos el color como un número hexadecimal
+    val colorHex: Long,
     val simbolo: String,
     val cantidadDocs: Int = 0
 )

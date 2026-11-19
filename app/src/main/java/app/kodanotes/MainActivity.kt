@@ -5,22 +5,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -33,14 +31,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Style
@@ -60,27 +57,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.kodanotes.ai.GeminiService
+import app.kodanotes.data.audio.WhisperTranscriber
 import app.kodanotes.screens.ExamenScreen
 import app.kodanotes.screens.FlashcardsScreen
 import app.kodanotes.screens.HomeScreen
 import app.kodanotes.screens.RecordScreen
 import app.kodanotes.screens.SettingsScreen
 import app.kodanotes.ui.theme.BackgroundLight
-import app.kodanotes.ui.theme.CardWhite
-import app.kodanotes.ui.theme.PurpleMain
+import app.kodanotes.ui.theme.DarkContainer
+import app.kodanotes.ui.theme.KodaNotesTheme
+import app.kodanotes.ui.theme.TealAccent
+import app.kodanotes.ui.theme.TextMuted
 import app.kodanotes.viewmodel.ExamenViewModel
 import app.kodanotes.viewmodel.ExamenViewModelFactory
 import app.kodanotes.viewmodel.FlashcardsViewModel
 import app.kodanotes.viewmodel.FlashcardsViewModelFactory
 import app.kodanotes.viewmodel.HomeViewModel
 import app.kodanotes.viewmodel.HomeViewModelFactory
+import app.kodanotes.viewmodel.RecordViewModel
 import app.kodanotes.viewmodel.RecordViewModelFactory
 import app.kodanotes.viewmodel.SettingsViewModel
 import app.kodanotes.viewmodel.SettingsViewModelFactory
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            app.kodanotes.ui.theme.KodaNotesTheme(dynamicColor = false) {
+            KodaNotesTheme(dynamicColor = false) {
                 KodaNotesApp()
             }
         }
@@ -106,24 +107,10 @@ fun KodaNotesApp() {
     val application = context.applicationContext as KodaNotesApplication
 
     val authManager   = application.authManager
-    val geminiService = remember { app.kodanotes.ai.GeminiService(authManager) }
+    val geminiService = remember { GeminiService(authManager) }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FIX #1: Leer audioRecorder desde Application, NO desde remember {}.
-    //
-    // ANTES (incorrecto):
-    //   val audioRecorder = remember { AudioRecorder() }
-    //
-    // DESPUÉS (correcto):
-    //   val audioRecorder = application.audioRecorder
-    //
-    // Razón: remember{} recrea el objeto si Compose destruye y recrea la
-    // composición (rotación, presión de memoria, cambio de tema en runtime).
-    // Al vivir en Application, el recorder es un singleton que nunca muere
-    // mientras la app esté viva.
-    // ─────────────────────────────────────────────────────────────────────────
     val audioRecorder      = application.audioRecorder
-    val whisperTranscriber = remember { app.kodanotes.data.audio.WhisperTranscriber(context) }
+    val whisperTranscriber = remember { WhisperTranscriber(context) }
 
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(application.repository, authManager)
@@ -131,11 +118,11 @@ fun KodaNotesApp() {
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(authManager, geminiService)
     )
-    val recordViewModel: app.kodanotes.viewmodel.RecordViewModel =
-        androidx.lifecycle.viewmodel.compose.viewModel(
+    val recordViewModel: RecordViewModel =
+        viewModel(
             factory = RecordViewModelFactory(
                 application.repository,
-                audioRecorder,          // ← ahora viene de Application
+                audioRecorder,
                 geminiService,
                 whisperTranscriber,
                 authManager
@@ -189,31 +176,31 @@ fun KodaNotesApp() {
                 transitionSpec = {
                     when {
                         targetState == AppDestinations.RECORD -> {
-                            (slideInVertically(tween(380), initialOffsetY = { it / 2 }) +
+                            (slideInVertically(tween(350), initialOffsetY = { it / 2 }) +
                                     fadeIn(tween(300))) togetherWith
-                                    (slideOutVertically(tween(280), targetOffsetY = { -it / 8 }) +
-                                            fadeOut(tween(220)))
+                                    (slideOutVertically(tween(260), targetOffsetY = { -it / 8 }) +
+                                            fadeOut(tween(200)))
                         }
                         initialState == AppDestinations.RECORD -> {
-                            (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.96f)) togetherWith
-                                    (slideOutVertically(tween(320), targetOffsetY = { it / 2 }) +
-                                            fadeOut(tween(220)))
+                            (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f)) togetherWith
+                                    (slideOutVertically(tween(300), targetOffsetY = { it / 2 }) +
+                                            fadeOut(tween(200)))
                         }
                         slideForward -> {
                             (slideInHorizontally(
                                 spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
                                 initialOffsetX = { it / 3 }
-                            ) + fadeIn(tween(280))) togetherWith
-                                    (slideOutHorizontally(tween(240), targetOffsetX = { -it / 5 }) +
-                                            fadeOut(tween(200)))
+                            ) + fadeIn(tween(250))) togetherWith
+                                    (slideOutHorizontally(tween(220), targetOffsetX = { -it / 5 }) +
+                                            fadeOut(tween(180)))
                         }
                         else -> {
                             (slideInHorizontally(
                                 spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
                                 initialOffsetX = { -it / 3 }
-                            ) + fadeIn(tween(280))) togetherWith
-                                    (slideOutHorizontally(tween(240), targetOffsetX = { it / 5 }) +
-                                            fadeOut(tween(200)))
+                            ) + fadeIn(tween(250))) togetherWith
+                                    (slideOutHorizontally(tween(220), targetOffsetX = { it / 5 }) +
+                                            fadeOut(tween(180)))
                         }
                     }
                 },
@@ -239,26 +226,27 @@ fun KodaBottomBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding(),
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(
-                    elevation    = 16.dp,
-                    shape        = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                    spotColor    = Color(0x18000000),
-                    ambientColor = Color(0x0C000000)
+                    elevation    = 20.dp,
+                    shape        = RoundedCornerShape(36.dp),
+                    spotColor    = Color(0x60000000),
+                    ambientColor = Color(0x30000000)
                 )
-                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .background(CardWhite)
-                .height(72.dp)
+                .clip(RoundedCornerShape(36.dp))
+                .background(DarkContainer)
+                .height(68.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(72.dp),
+                    .height(68.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
@@ -276,7 +264,48 @@ fun KodaBottomBar(
                     onClick  = { onDestinationChange(AppDestinations.FLASHCARDS) },
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.weight(1f))
+
+                val fabInteractionSource = remember { MutableInteractionSource() }
+                val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+
+                val fabScale by animateFloatAsState(
+                    targetValue    = if (isFabPressed) 0.88f else 1f,
+                    animationSpec  = spring(stiffness = Spring.StiffnessHigh),
+                    label          = "fab_scale"
+                )
+                val isRecord = currentDestination == AppDestinations.RECORD
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .scale(fabScale)
+                            .clip(CircleShape)
+                            .background(if (isRecord) Color(0xFFEF4444) else Color(0xFF1C1D22))
+                            .border(1.5.dp, if (isRecord) Color(0xFFEF4444) else TealAccent.copy(0.6f), CircleShape)
+                            .clickable(
+                                interactionSource = fabInteractionSource,
+                                indication        = null
+                            ) {
+                                onDestinationChange(
+                                    if (isRecord) AppDestinations.HOME else AppDestinations.RECORD
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Grabación",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
                 NavTabItem(
                     icon     = Icons.Default.Quiz,
                     label    = "EXAMEN",
@@ -292,65 +321,6 @@ fun KodaBottomBar(
                     modifier = Modifier.weight(1f)
                 )
             }
-        }
-
-        val fabInteractionSource = remember { MutableInteractionSource() }
-        val isFabPressed by fabInteractionSource.collectIsPressedAsState()
-
-        val fabScale by animateFloatAsState(
-            targetValue    = if (isFabPressed) 0.86f else 1f,
-            animationSpec  = spring(stiffness = Spring.StiffnessHigh),
-            label          = "fab_scale"
-        )
-        val fabElevation by animateDpAsState(
-            targetValue   = if (isFabPressed) 4.dp else 18.dp,
-            animationSpec = spring(stiffness = Spring.StiffnessHigh),
-            label         = "fab_elevation"
-        )
-        val fabRotation by animateFloatAsState(
-            targetValue   = if (currentDestination == AppDestinations.RECORD) 45f else 0f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness    = Spring.StiffnessMedium
-            ),
-            label = "fab_rotation"
-        )
-        val fabColor = if (currentDestination == AppDestinations.RECORD)
-            Color(0xFFFF3B30) else PurpleMain
-
-        Box(
-            modifier = Modifier
-                .offset(y = (-22).dp)
-                .size(62.dp)
-                .scale(fabScale)
-                .shadow(
-                    elevation    = fabElevation,
-                    shape        = CircleShape,
-                    spotColor    = fabColor.copy(alpha = 0.55f),
-                    ambientColor = fabColor.copy(alpha = 0.25f)
-                )
-                .clip(CircleShape)
-                .background(fabColor)
-                .clickable(
-                    interactionSource = fabInteractionSource,
-                    indication        = null
-                ) {
-                    onDestinationChange(
-                        if (currentDestination == AppDestinations.RECORD)
-                            AppDestinations.HOME
-                        else AppDestinations.RECORD
-                    )
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector     = Icons.Default.Add,
-                contentDescription = "Nueva grabación",
-                tint            = Color.White,
-                modifier        = Modifier
-                    .size(30.dp)
-                    .graphicsLayer { rotationZ = fabRotation }
-            )
         }
     }
 }
@@ -371,11 +341,6 @@ fun NavTabItem(
         animationSpec = spring(stiffness = Spring.StiffnessHigh),
         label         = "tab_scale"
     )
-    val iconSize by animateDpAsState(
-        targetValue   = if (selected) 24.dp else 21.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label         = "icon_size"
-    )
 
     Column(
         modifier = modifier
@@ -385,33 +350,34 @@ fun NavTabItem(
                 onClick           = onClick
             )
             .scale(scale)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        AnimatedVisibility(
-            visible = selected,
-            enter   = scaleIn(spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(tween(200)),
-            exit    = scaleOut(tween(150)) + fadeOut(tween(150))
-        ) {
-            Box(modifier = Modifier.size(4.dp).background(PurpleMain, CircleShape))
-        }
-        if (!selected) Spacer(modifier = Modifier.height(4.dp))
-        Spacer(modifier = Modifier.height(2.dp))
         Icon(
             imageVector        = icon,
             contentDescription = label,
-            tint               = if (selected) PurpleMain else Color(0xFFCCCCD4),
-            modifier           = Modifier.size(iconSize)
+            tint               = if (selected) Color.White else TextMuted,
+            modifier           = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.height(3.dp))
         Text(
             text          = label,
-            fontSize      = 10.sp,
+            fontSize      = 9.sp,
             fontWeight    = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color         = if (selected) PurpleMain else Color(0xFFCCCCD4),
-            letterSpacing = 0.8.sp
+            color         = if (selected) Color.White else TextMuted,
+            letterSpacing = 0.5.sp
         )
+        Spacer(modifier = Modifier.height(2.dp))
+        if (selected) {
+            Box(
+                modifier = Modifier
+                    .size(3.dp)
+                    .background(Color.White, CircleShape)
+            )
+        } else {
+            Spacer(modifier = Modifier.height(3.dp))
+        }
     }
 }
 

@@ -1,8 +1,12 @@
 package app.kodanotes.viewmodel
 
+import android.Manifest
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.kodanotes.ai.AiPrompts
 import app.kodanotes.ai.GeminiService
@@ -25,11 +29,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import java.io.File
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 import kotlin.coroutines.coroutineContext
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Estados públicos
-// ─────────────────────────────────────────────────────────────────────────────
 
 enum class WhisperState { CARGANDO, LISTO, ERROR }
 
@@ -42,10 +48,6 @@ sealed class RecordState {
     object ErrorNoApi                                            : RecordState()
     data class ErrorGeneral(val mensaje: String)                 : RecordState()
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ViewModel
-// ─────────────────────────────────────────────────────────────────────────────
 
 class RecordViewModel(
     private val repository:         MateriaRepository,
@@ -117,7 +119,7 @@ class RecordViewModel(
         _recordState.value  = RecordState.Idle
     }
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun gestionarGrabacion(context: Context, nombreNota: String = "") {
         when (_recordState.value) {
             is RecordState.Recording -> detenerGrabacion(context)
@@ -138,11 +140,11 @@ class RecordViewModel(
 
             is RecordState.Transcribing,
             is RecordState.Analyzing,
-            is RecordState.ErrorNoApi -> { /* no-op */ }
+            is RecordState.ErrorNoApi -> { }
         }
     }
 
-    @androidx.annotation.RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     private fun iniciarGrabacion(context: Context, nombreNota: String) {
         nombreNotaOpcional  = nombreNota
         _timerSeconds.value = 0
@@ -150,7 +152,6 @@ class RecordViewModel(
 
         startTimer()
         RecordingService.start(context)
-        // Pasamos el context al AudioRecorder para gestionar el Foco de Audio
         audioRecorder.start(context = context, outputDir = context.cacheDir)
     }
 
@@ -189,7 +190,7 @@ class RecordViewModel(
         }
     }
 
-    private suspend fun transcribirChunks(archivos: List<java.io.File>): String {
+    private suspend fun transcribirChunks(archivos: List<File>): String {
         val total     = archivos.size
         val resultado = StringBuilder()
 
@@ -335,15 +336,15 @@ class RecordViewModel(
     }
 
     private fun fechaActual(): String =
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            java.time.LocalDateTime.now().format(
-                java.time.format.DateTimeFormatter.ofPattern(
-                    "dd MMM, HH:mm", java.util.Locale.getDefault()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern(
+                    "dd MMM, HH:mm", Locale.getDefault()
                 )
             )
         } else {
-            java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault())
-                .format(java.util.Date())
+            SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+                .format(Date())
         }
 
     override fun onCleared() {
@@ -360,8 +361,8 @@ class RecordViewModelFactory(
     private val geminiService:      GeminiService,
     private val whisperTranscriber: WhisperTranscriber,
     private val authManager:        AuthManager
-) : androidx.lifecycle.ViewModelProvider.Factory {
-    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RecordViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return RecordViewModel(

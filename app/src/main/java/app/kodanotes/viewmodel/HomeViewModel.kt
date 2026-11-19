@@ -21,7 +21,6 @@ class HomeViewModel(
     val materias: StateFlow<List<MateriaEntity>> = repository.todasLasMaterias
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Nombre leído de AuthManager — se actualiza cuando HomeScreen vuelve a estar visible
     private val _nombreUsuario = MutableStateFlow(authManager.obtenerNombre())
     val nombreUsuario: StateFlow<String> = _nombreUsuario.asStateFlow()
 
