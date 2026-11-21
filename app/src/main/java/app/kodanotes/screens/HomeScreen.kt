@@ -57,12 +57,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.kodanotes.KodaNotesApplication
 import app.kodanotes.data.local.entity.MateriaEntity
+import app.kodanotes.data.local.entity.NotaEntity
 import app.kodanotes.ui.theme.BackgroundLight
 import app.kodanotes.ui.theme.CardWhite
 import app.kodanotes.ui.theme.CoursePalette
@@ -77,6 +79,9 @@ import app.kodanotes.ui.theme.TextWhite
 import app.kodanotes.viewmodel.CourseDetailViewModel
 import app.kodanotes.viewmodel.CourseDetailViewModelFactory
 import app.kodanotes.viewmodel.HomeViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
 
 private val COLORES_MATERIAS = listOf(
@@ -85,13 +90,19 @@ private val COLORES_MATERIAS = listOf(
 )
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    onNavigateToRecord: () -> Unit = {}
+) {
     val materias       by viewModel.materias.collectAsState()
+    val ultimasClases  by viewModel.ultimasClases.collectAsState()
     val nombreUsuario  by viewModel.nombreUsuario.collectAsState()
-    var mostrarDialogoAgregar by remember { mutableStateOf(false) }
+
+    var mostrarDialogoAgregar   by remember { mutableStateOf(false) }
     var mostrarDialogoGestionar by remember { mutableStateOf(false) }
-    var materiaSeleccionada by remember { mutableStateOf<MateriaEntity?>(null) }
-    var materiaAEliminar by remember { mutableStateOf<MateriaEntity?>(null) }
+    var materiaSeleccionada     by remember { mutableStateOf<MateriaEntity?>(null) }
+    var materiaAEliminar        by remember { mutableStateOf<MateriaEntity?>(null) }
+    var notaSeleccionadaParaLeer by remember { mutableStateOf<NotaEntity?>(null) }
 
     val context = LocalContext.current
     val application = context.applicationContext as KodaNotesApplication
@@ -223,7 +234,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "Vista Vacía",
+                                "Vista Vacía (${ultimasClases.size} clases)",
                                 fontSize = 13.sp,
                                 fontWeight = if (tabModoVista == 1) FontWeight.Bold else FontWeight.Medium,
                                 color = if (tabModoVista == 1) TextDark else TextMuted
@@ -283,7 +294,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("+  ", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextDark)
-                                Text("+ Nueva", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextDark)
+                                Text("Nueva", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextDark)
                             }
                         }
 
@@ -291,12 +302,13 @@ fun HomeScreen(viewModel: HomeViewModel) {
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .background(DarkContainer),
+                                .background(DarkContainer)
+                                .clickable { onNavigateToRecord() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Default.Mic,
-                                contentDescription = null,
+                                contentDescription = "Grabar audio",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -308,7 +320,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                                 .height(52.dp)
                                 .clip(RoundedCornerShape(26.dp))
                                 .background(MintBg)
-                                .clickable { mostrarDialogoAgregar = true }
+                                .clickable { onNavigateToRecord() }
                                 .padding(horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -328,14 +340,14 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Tus Asignaturas",
+                            if (tabModoVista == 1) "Últimas Clases Generadas" else "Tus Asignaturas",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextDark,
                             letterSpacing = (-0.3).sp
                         )
                         Text(
-                            "${materias.size} materias",
+                            if (tabModoVista == 1) "${ultimasClases.size} clases recientes" else "${materias.size} materias",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextMuted
@@ -344,7 +356,67 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 }
 
                 item {
-                    if (tabModoVista == 1 || materias.isEmpty()) {
+                    if (tabModoVista == 1) {
+                        if (ultimasClases.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                ultimasClases.forEach { nota ->
+                                    ItemNotaRecienteHome(
+                                        nota = nota,
+                                        onClick = { notaSeleccionadaParaLeer = nota }
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shadow(8.dp, RoundedCornerShape(28.dp), spotColor = Color(0x30000000))
+                                    .clip(RoundedCornerShape(28.dp))
+                                    .background(DarkContainer)
+                                    .padding(28.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(CircleShape)
+                                            .background(DarkCardBg),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Folder,
+                                            null,
+                                            tint = TextMuted,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.height(14.dp))
+                                    Text(
+                                        "No hay clases grabadas aún",
+                                        color = TextWhite,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        "Graba una clase para generar notas de estudio con IA",
+                                        color = TextMuted,
+                                        fontSize = 13.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(Modifier.height(16.dp))
+                                    Button(
+                                        onClick = { onNavigateToRecord() },
+                                        colors = ButtonDefaults.buttonColors(containerColor = MintBg),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ) {
+                                        Text("Ir al Grabador →", color = TextDark, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    } else if (materias.isEmpty()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -448,7 +520,63 @@ fun HomeScreen(viewModel: HomeViewModel) {
                     }
                 )
             }
+
+            if (notaSeleccionadaParaLeer != null) {
+                DialogLectorClase(
+                    nota = notaSeleccionadaParaLeer!!,
+                    onDismiss = { notaSeleccionadaParaLeer = null }
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun ItemNotaRecienteHome(nota: NotaEntity, onClick: () -> Unit) {
+    val fechaFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault()).format(Date(nota.fecha))
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color(0x12000000))
+            .clip(RoundedCornerShape(20.dp))
+            .background(CardWhite)
+            .clickable { onClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xFFF0EFFF)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("📄", fontSize = 22.sp)
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(nota.titulo, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TextDark)
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(PeachBg)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text("Clase Reciente", fontSize = 11.sp, color = TextDark, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(fechaFormat, fontSize = 11.sp, color = TextMuted)
+            }
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = TextMuted,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
@@ -540,7 +668,8 @@ fun DialogAgregarMateria(onDismiss: () -> Unit, onConfirm: (String, String, Int)
                 OutlinedTextField(
                     value = simbolo,
                     onValueChange = { if (it.length <= 2) simbolo = it },
-                    label = { Text("Emoji (ej: 🔬)") },
+                    label = { Text("Emoji (opcional, ej: 🔬)") },
+                    placeholder = { Text("📚") },
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -552,8 +681,13 @@ fun DialogAgregarMateria(onDismiss: () -> Unit, onConfirm: (String, String, Int)
         },
         confirmButton = {
             Button(
-                onClick = { if (nombre.isNotBlank() && simbolo.isNotBlank()) onConfirm(nombre, simbolo, colorIdx) },
-                enabled = nombre.isNotBlank() && simbolo.isNotBlank(),
+                onClick = {
+                    if (nombre.isNotBlank()) {
+                        val emojiFinal = simbolo.ifBlank { "📚" }
+                        onConfirm(nombre, emojiFinal, colorIdx)
+                    }
+                },
+                enabled = nombre.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = DarkContainer),
                 shape = RoundedCornerShape(12.dp)
             ) { Text("Guardar", fontWeight = FontWeight.Bold) }

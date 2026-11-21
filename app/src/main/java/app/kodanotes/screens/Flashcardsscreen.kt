@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -176,13 +177,24 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                         Spacer(Modifier.height(20.dp))
                     }
 
-                    if (notas.isNotEmpty()) {
+                    if (materiaSeleccionada == null) {
+                        item {
+                            FlashcardSiluetaCard(mensaje = "Selecciona una materia arriba para preparar tus tarjetas de estudio con IA.")
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    } else if (notas.isEmpty()) {
+                        item {
+                            FlashcardSiluetaCard(mensaje = "Esta materia no tiene clases grabadas aún. Graba un audio para generar tarjetas.")
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    } else {
                         item {
                             Text(
-                                "Selecciona notas",
-                                fontSize = 13.sp,
+                                "SELECCIONA LAS NOTAS BASE",
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextMuted
+                                color = TextMuted,
+                                letterSpacing = 1.sp
                             )
                             Spacer(Modifier.height(8.dp))
                         }
@@ -233,9 +245,7 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                             }
                         }
                         item { Spacer(Modifier.height(16.dp)) }
-                    }
 
-                    if (materiaSeleccionada != null) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
@@ -451,7 +461,7 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                                         ) {
                                             Text(
-                                                materiaSeleccionada?.nombre ?: "Ciberseguridad",
+                                                materiaSeleccionada?.nombre ?: "Asignatura",
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = TextDark
@@ -651,6 +661,121 @@ fun FlashcardsScreen(viewModel: FlashcardsViewModel) {
                             Text("Nueva sesión", color = TextMuted, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FlashcardSiluetaCard(mensaje: String = "Selecciona una materia para generar tus flashcards") {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(26.dp), spotColor = Color(0x12000000)),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = PeachCard),
+        border = BorderStroke(1.dp, Color(0xFFFED7AA))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardWhite)
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        "🎴 Vista previa de tarjeta",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                }
+
+                Text(
+                    "1 / 10",
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF9E8B76)
+                )
+            }
+
+            Spacer(Modifier.height(28.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(Color(0xFFE5D5C5))
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(Color(0xFFE5D5C5))
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                "(Toca la tarjeta para ver la respuesta)",
+                fontSize = 11.sp,
+                color = Color(0xFFB09C88),
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(DarkContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(CardWhite)
+                    .padding(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💡 ", fontSize = 14.sp)
+                    Text(
+                        mensaje,
+                        fontSize = 12.sp,
+                        color = TextDark,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }

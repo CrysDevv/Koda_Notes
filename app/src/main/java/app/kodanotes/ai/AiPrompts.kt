@@ -1,7 +1,7 @@
 package app.kodanotes.ai
 
 /**
- * Prompts centralizados de EduNotes AI.
+ * Prompts centralizados de KodaNotes AI.
  *
  * Arquitectura de tokens optimizada:
  * - Cada segmento de 5 min se analiza de forma INDEPENDIENTE → costo fijo por segmento

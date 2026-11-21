@@ -175,13 +175,24 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                         Spacer(Modifier.height(20.dp))
                     }
 
-                    if (notas.isNotEmpty()) {
+                    if (materiaSeleccionada == null) {
+                        item {
+                            ExamenSiluetaCard(mensaje = "Selecciona una materia arriba para preparar tu examen con IA.")
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    } else if (notas.isEmpty()) {
+                        item {
+                            ExamenSiluetaCard(mensaje = "Esta materia no tiene clases grabadas aún. Graba un audio para generar contenido de examen.")
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    } else {
                         item {
                             Text(
-                                "Selecciona notas",
-                                fontSize = 13.sp,
+                                "SELECCIONA LAS NOTAS BASE",
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextMuted
+                                color = TextMuted,
+                                letterSpacing = 1.sp
                             )
                             Spacer(Modifier.height(8.dp))
                         }
@@ -231,9 +242,7 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                             }
                         }
                         item { Spacer(Modifier.height(16.dp)) }
-                    }
 
-                    if (materiaSeleccionada != null) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
@@ -779,6 +788,121 @@ fun ExamenScreen(viewModel: ExamenViewModel) {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExamenSiluetaCard(mensaje: String = "Selecciona una materia para generar tu examen") {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = Color(0x10000000)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        border = BorderStroke(1.dp, Color(0xFFE8EAF3))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFE5E7EB))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        "PREGUNTA 1 / 10",
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF9CA3AF)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFF3F4F6))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text("💡 Simulacro IA", fontSize = 11.sp, color = Color(0xFF9CA3AF), fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(Color(0xFFE5E7EB))
+            )
+            Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.65f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(Color(0xFFE5E7EB))
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            listOf("A", "B", "C", "D").forEach { letra ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFF9FAFB))
+                        .border(1.dp, Color(0xFFF0F1F5), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE5E7EB)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(letra, fontSize = 11.sp, color = Color(0xFF9CA3AF), fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(if (letra == "A") 0.7f else if (letra == "B") 0.5f else 0.8f)
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(Color(0xFFE5E7EB))
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(LavenderBg)
+                    .padding(14.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💡 ", fontSize = 14.sp)
+                    Text(
+                        mensaje,
+                        fontSize = 12.sp,
+                        color = TextDark,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }

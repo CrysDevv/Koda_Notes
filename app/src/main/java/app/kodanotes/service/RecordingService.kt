@@ -63,7 +63,7 @@ class RecordingService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("EduNotes AI — Grabando")
+            .setContentTitle("KodaNotes — Grabando")
             .setContentText("🔴 Clase en curso. Toca para volver a la app.")
             .setSmallIcon(R.drawable.ic_btn_speak_now)
             .setContentIntent(openIntent)
