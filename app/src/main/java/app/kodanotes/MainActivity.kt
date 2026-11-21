@@ -207,7 +207,10 @@ fun KodaNotesApp() {
                 label = "screen_transition"
             ) { destination ->
                 when (destination) {
-                    AppDestinations.HOME       -> HomeScreen(viewModel = homeViewModel)
+                    AppDestinations.HOME       -> HomeScreen(
+                        viewModel = homeViewModel,
+                        onNavigateToRecord = { currentDestination = AppDestinations.RECORD }
+                    )
                     AppDestinations.FLASHCARDS -> FlashcardsScreen(viewModel = flashcardsViewModel)
                     AppDestinations.RECORD     -> RecordScreen(viewModel = recordViewModel)
                     AppDestinations.EXAMEN     -> ExamenScreen(viewModel = examenViewModel)

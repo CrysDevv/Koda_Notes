@@ -288,7 +288,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
                 .padding(top = 52.dp, start = 24.dp, end = 24.dp, bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -325,7 +324,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.height(20.dp))
 
-            // Subject Hero Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -373,7 +371,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.height(16.dp))
 
-            // Animated Status Badges
             AnimatedVisibility(
                 visible = whisperState == WhisperState.CARGANDO,
                 enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)) + fadeIn(),
@@ -472,7 +469,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.weight(1f))
 
-            // Timer Display Area
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     "TIEMPO TRANSCURRIDO",
@@ -533,7 +529,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.height(18.dp))
 
-            // Symmetrical Audio Waveform
             AudioWaveformBars(
                 audioLevel  = audioLevel,
                 isRecording = grabando,
@@ -576,7 +571,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.weight(1f))
 
-            // Hero Control Button
             Box(contentAlignment = Alignment.Center) {
                 if (grabando) {
                     Box(
@@ -623,7 +617,6 @@ fun RecordScreen(viewModel: RecordViewModel) {
 
             Spacer(Modifier.height(18.dp))
 
-            // Action Label Pill Trigger
             Box(
                 modifier = Modifier
                     .shadow(
