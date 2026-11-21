@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.kodanotes.data.local.entity.MateriaEntity
+import app.kodanotes.data.local.entity.NotaEntity
 import app.kodanotes.data.repository.MateriaRepository
 import app.kodanotes.data.security.AuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,9 @@ class HomeViewModel(
     val materias: StateFlow<List<MateriaEntity>> = repository.todasLasMaterias
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val ultimasClases: StateFlow<List<NotaEntity>> = repository.obtenerNotasRecientes(10)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _nombreUsuario = MutableStateFlow(authManager.obtenerNombre())
     val nombreUsuario: StateFlow<String> = _nombreUsuario.asStateFlow()
 
@@ -30,8 +34,9 @@ class HomeViewModel(
 
     fun agregarNuevaMateria(nombre: String, simbolo: String, colorHex: Long) {
         viewModelScope.launch {
+            val emojiFinal = simbolo.ifBlank { "📚" }
             repository.agregarMateria(
-                MateriaEntity(nombre = nombre, simbolo = simbolo, colorHex = colorHex, cantidadDocs = 0)
+                MateriaEntity(nombre = nombre.trim(), simbolo = emojiFinal, colorHex = colorHex, cantidadDocs = 0)
             )
         }
     }
