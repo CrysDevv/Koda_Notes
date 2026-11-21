@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "app.kodanotes"
-    compileSdk = 36   // compileSdk 36 con minorApiLevel no es estable — usar 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "app.kodanotes"
@@ -32,22 +32,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    // El bloque kotlinOptions fue eliminado para evitar el conflicto.
-    // Kotlin usará automáticamente Java 11 gracias a compileOptions.
-
     buildFeatures {
         compose = true
     }
 
-    // Necesario para que Gradle encuentre las .so de sherpa-onnx
     sourceSets {
         getByName("main") {
-            // Corrección aplicada: srcDir en singular
             jniLibs.srcDir("src/main/jniLibs")
         }
     }
 
-    // Excluir archivos META-INF duplicados que traen algunos AARs
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -58,7 +52,7 @@ android {
 }
 
 dependencies {
-    // ── Core ─────────────────────────────────────────────────────────────────
+    // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -71,23 +65,22 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
 
-    // ── Room ─────────────────────────────────────────────────────────────────
+    // Room
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
     ksp("androidx.room:room-compiler:2.7.0")
 
-    // ── Security ─────────────────────────────────────────────────────────────
+    // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // ── Networking (Gemini/Retrofit) ──────────────────────────────────────────
+    // Networking / Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // ── sherpa-onnx AAR local (Moonshine Tiny transcripción offline) ──────────
-    // Archivo en: app/libs/sherpa-onnx-1.12.35.aar
+    // Transcripción offline (sherpa-onnx)
     implementation(files("libs/sherpa-onnx-1.12.35.aar"))
 
-    // ── Tests ─────────────────────────────────────────────────────────────────
+    // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
